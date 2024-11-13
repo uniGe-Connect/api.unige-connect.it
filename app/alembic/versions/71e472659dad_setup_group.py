@@ -1,30 +1,23 @@
-"""setup_db
+"""setup_group
 
-Revision ID: ae522cefad04
-Revises:
-Create Date: 2024-11-12 21:56:55.912902
+Revision ID: 71e472659dad
+Revises: 88f05b3c9f29
+Create Date: 2024-11-13 09:45:16.121208
 
 """
 from alembic import op
 import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
 
-revision = 'ae522cefad04'
-down_revision = None
+
+# revision identifiers, used by Alembic.
+revision = '71e472659dad'
+down_revision = '88f05b3c9f29'
 branch_labels = None
 depends_on = None
 
-def upgrade():
 
-    op.create_table(
-        "user",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.VARCHAR(), nullable=False),
-        sa.Column("surname", sa.VARCHAR(), nullable=False),
-        sa.Column("email", sa.VARCHAR(), unique=True, nullable=False),
-        sa.Column("type", sa.Enum('STUDENT', 'PROFESSOR', 'OPERATOR', 'ADMIN', name='user_roles'), server_default='STUDENT', nullable=False),
-        
-        sa.PrimaryKeyConstraint("id"),
-    )
+def upgrade():
     op.create_table(
         "group",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -43,8 +36,7 @@ def upgrade():
     )
     op.create_index('ix_group_owner_id', 'group', ['owner_id'])
 
-def downgrade():
-    op.drop_table("group")
-    op.drop_index(op.f("ix_group_owner_id"), table_name="group")
-    op.drop_table("user")
 
+def downgrade():
+    op.drop_index(op.f("ix_group_owner_id"), table_name="group")
+    op.drop_table("group")
