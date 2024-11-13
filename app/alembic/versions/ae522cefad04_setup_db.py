@@ -1,21 +1,17 @@
 """setup_db
 
 Revision ID: ae522cefad04
-Revises: 1a31ce608336
+Revises:
 Create Date: 2024-11-12 21:56:55.912902
 
 """
 from alembic import op
 import sqlalchemy as sa
-import sqlmodel.sql.sqltypes
 
-
-# revision identifiers, used by Alembic.
 revision = 'ae522cefad04'
-down_revision = '1a31ce608336'
+down_revision = None
 branch_labels = None
 depends_on = None
-
 
 def upgrade():
 
@@ -24,7 +20,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.VARCHAR(), nullable=False),
         sa.Column("surname", sa.VARCHAR(), nullable=False),
-        sa.Column("email", sa.VARCHAR(), nullable=False),
+        sa.Column("email", sa.VARCHAR(), unique=True, nullable=False),
         sa.Column("type", sa.Enum('STUDENT', 'PROFESSOR', 'OPERATOR', 'ADMIN', name='user_roles'), server_default='STUDENT', nullable=False),
         
         sa.PrimaryKeyConstraint("id"),
@@ -39,7 +35,6 @@ def upgrade():
         sa.Column("type", sa.Enum('OPEN', 'CLOSED', 'PRIVATE', name='group_types'), server_default='OPEN', nullable=False),
         sa.Column("owner_id", sa.Integer(), nullable=False),
         
-        # Column('y', DateTime, server_default=text('NOW()')
         sa.ForeignKeyConstraint(
             ["owner_id"],
             ["user.id"],
@@ -50,5 +45,6 @@ def upgrade():
 
 def downgrade():
     op.drop_table("group")
+    op.drop_index(op.f("ix_group_owner_id"), table_name="group")
     op.drop_table("user")
 

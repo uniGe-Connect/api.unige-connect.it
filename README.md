@@ -170,3 +170,27 @@ The email templates are in `./backend/app/email-templates/`. Here, there are two
 Before continuing, ensure you have the [MJML extension](https://marketplace.visualstudio.com/items?itemName=attilabuti.vscode-mjml) installed in your VS Code.
 
 Once you have the MJML extension installed, you can create a new email template in the `src` directory. After creating the new email template and with the `.mjml` file open in your editor, open the command palette with `Ctrl+Shift+P` and search for `MJML: Export to HTML`. This will convert the `.mjml` file to a `.html` file and now you can save it in the build directory.
+
+# How-to (Linux)
+
+Follow the steps in order:
+
+- start the docker compose db:  
+_sudo docker-compose up db_  
+
+- start venv:  
+_source .venv/bin/activate_  
+
+- setup db (ae[...] revision):  
+_alembic upgrade ae_
+
+- drop db tables:  
+_alembic downgrade base_
+
+- destroy container:  
+_sudo docker-compose down db_  
+and  
+_sudo docker rm <name-of-container>_
+
+You can get the name of container from:  
+_docker ps -a_  
