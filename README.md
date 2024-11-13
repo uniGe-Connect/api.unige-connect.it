@@ -181,8 +181,8 @@ _sudo docker-compose up db_
 - start venv:  
 _source .venv/bin/activate_  
 
-- setup db (ae[...] revision):  
-_alembic upgrade ae_
+- setup db:  
+_alembic upgrade head_
 
 - drop db tables:  
 _alembic downgrade base_
