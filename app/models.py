@@ -3,6 +3,21 @@ import uuid
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
+# from sqlalchemy import Column, Integer, String
+# from sqlalchemy.orm import declarative_base
+
+# Base = declarative_base()
+
+# # class Group(Base):
+# #     __tablename__ = 'groups'
+
+# #     id = Column(Integer, primary_key=True, index=True)
+# #     name = Column(String)
+# #     topic = Column(String)
+# #     description = Column(String)
+# #     type = Column(String)
+# #     owner_id = Column(Integer)
+
 
 # Shared properties
 class UserBase(SQLModel):

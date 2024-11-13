@@ -1,11 +1,12 @@
 from fastapi import APIRouter
+# from models import Group  # Import the Group model
 from pydantic import BaseModel
 
 router = APIRouter()
 
-# Define a Pydantic model for the expected input data
+# Define the Pydantic model for input data
 class GroupCreate(BaseModel):
-    name: str  # You may add other fields as needed
+    name: str
     topic: str
     description: str
     type: str
@@ -16,9 +17,22 @@ def create_group(data: GroupCreate) -> dict[str, int]:
     """
     Create a new group
     """
-    print("Received request to create group")
+    # Create an instance of the Group model and populate it with data
+    # new_group = Group(
+    #     name=data.name,
+    #     topic=data.topic,
+    #     description=data.description,
+    #     type=data.type,
+    #     owner_id=data.owner_id
+    # )
 
-    # Perform the database operation to create the group here
-    
-    # Assuming you would query the database and get a group ID
-    return {"id": 5}  # Example response with the group ID
+    # Add the new group to the session and commit
+    # db.add(new_group)
+    # db.commit()
+
+    # # Refresh the object to get the generated ID
+    # db.refresh(new_group)
+
+    # Return the ID of the newly created group
+    # return {"id": new_group.id}
+    return {'id': 5}
