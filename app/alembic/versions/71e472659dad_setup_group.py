@@ -1,8 +1,8 @@
-"""setup_db
+"""setup_group
 
-Revision ID: ae522cefad04
-Revises: 1a31ce608336
-Create Date: 2024-11-12 21:56:55.912902
+Revision ID: 71e472659dad
+Revises: 88f05b3c9f29
+Create Date: 2024-11-13 09:45:16.121208
 
 """
 from alembic import op
@@ -11,24 +11,13 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision = 'ae522cefad04'
-down_revision = '1a31ce608336'
+revision = '71e472659dad'
+down_revision = '88f05b3c9f29'
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-
-    op.create_table(
-        "user",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.VARCHAR(), nullable=False),
-        sa.Column("surname", sa.VARCHAR(), nullable=False),
-        sa.Column("email", sa.VARCHAR(), nullable=False),
-        sa.Column("type", sa.Enum('STUDENT', 'PROFESSOR', 'OPERATOR', 'ADMIN', name='user_roles'), server_default='STUDENT', nullable=False),
-        
-        sa.PrimaryKeyConstraint("id"),
-    )
     op.create_table(
         "group",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -39,7 +28,6 @@ def upgrade():
         sa.Column("type", sa.Enum('OPEN', 'CLOSED', 'PRIVATE', name='group_types'), server_default='OPEN', nullable=False),
         sa.Column("owner_id", sa.Integer(), nullable=False),
         
-        # Column('y', DateTime, server_default=text('NOW()')
         sa.ForeignKeyConstraint(
             ["owner_id"],
             ["user.id"],
@@ -48,7 +36,7 @@ def upgrade():
     )
     op.create_index('ix_group_owner_id', 'group', ['owner_id'])
 
-def downgrade():
-    op.drop_table("group")
-    op.drop_table("user")
 
+def downgrade():
+    op.drop_index(op.f("ix_group_owner_id"), table_name="group")
+    op.drop_table("group")
