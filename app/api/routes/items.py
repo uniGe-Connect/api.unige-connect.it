@@ -5,9 +5,25 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
+from app.models import Group, Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
 
 router = APIRouter()
+
+
+# @router.post("ggg", response_model=Group)
+# def create_group(
+#     *, session: SessionDep, item_in: Group
+# ) -> Any:
+#     """
+#     Create new group.
+#     """
+#     item = Group.model_validate(item_in)
+#     session.add(item)
+#     session.commit()
+#     session.refresh(item)
+#     return item
+
+# ----------- TEMPLATE
 
 
 @router.get("/", response_model=ItemsPublic)
