@@ -10,22 +10,6 @@ from app.models import Group, Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpd
 router = APIRouter()
 
 
-# @router.post("ggg", response_model=Group)
-# def create_group(
-#     *, session: SessionDep, item_in: Group
-# ) -> Any:
-#     """
-#     Create new group.
-#     """
-#     item = Group.model_validate(item_in)
-#     session.add(item)
-#     session.commit()
-#     session.refresh(item)
-#     return item
-
-# ----------- TEMPLATE
-
-
 @router.get("/", response_model=ItemsPublic)
 def read_items(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100

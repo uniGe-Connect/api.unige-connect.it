@@ -13,7 +13,7 @@ class GroupType(str, Enum):
 
 # Update the Group model
 class Group(SQLModel, table=True):
-    id: Optional[int] = Field(default=None,
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=255)
     topic: str = Field(max_length=255)
     description: str = Field(max_length=255)
