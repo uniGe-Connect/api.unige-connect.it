@@ -1,0 +1,81 @@
+version: "3.8"  # or another version you are using
+
+services:
+
+  backend:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    build:
+      context: ./
+    networks:
+      - default
+    depends_on:
+      - db
+    restart: always  # This should be at the service level
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - FRONTEND_HOST=${FRONTEND_HOST:-frontend.local}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost}
+      - SECRET_KEY=${SECRET_KEY:-changethis}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin@example.com}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-changethis}
+      - SMTP_HOST=${SMTP_HOST:-smtp.local}
+      - SMTP_USER=${SMTP_USER:-user@example.com}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-password}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL:-info@example.com}
+      - POSTGRES_SERVER=${POSTGRES_SERVER:-localhost}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-app}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changethis}
+      - SENTRY_DSN=${SENTRY_DSN:-""}
+
+  prestart:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    build:
+      context: ./
+    networks:
+      - default
+    depends_on:
+      - db
+    restart: always  # This should be at the service level
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - FRONTEND_HOST=${FRONTEND_HOST:-frontend.local}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost}
+      - SECRET_KEY=${SECRET_KEY:-changethis}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin@example.com}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-changethis}
+      - SMTP_HOST=${SMTP_HOST:-smtp.local}
+      - SMTP_USER=${SMTP_USER:-user@example.com}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-password}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL:-info@example.com}
+      - POSTGRES_SERVER=${POSTGRES_SERVER:-localhost}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-app}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changethis}
+      - SENTRY_DSN=${SENTRY_DSN:-""}
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changethis}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+    restart: always  # This should be at the service level as well
+
+networks:
+  default:
+    driver: bridge
