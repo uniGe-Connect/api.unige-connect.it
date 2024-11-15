@@ -216,7 +216,7 @@ In this example, I will create the endpoint to create the group.
 
 3. In the groups.py file create the endpoint, specifying the correct path, passing the SessionDep as argument (that links with db session)
 
-4. Perform the necessary query to create group, using the proper function; take not that selection aren't called on session but on a statement that needs to be executed afterwards
+4. Perform the necessary queries to create group, using the proper function; take not that selection aren't called on _session_ but on a _statement_ that needs to be executed afterwards
 
 5. Get the backend up as described before.
 
