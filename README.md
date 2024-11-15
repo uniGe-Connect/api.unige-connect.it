@@ -171,7 +171,11 @@ Before continuing, ensure you have the [MJML extension](https://marketplace.visu
 
 Once you have the MJML extension installed, you can create a new email template in the `src` directory. After creating the new email template and with the `.mjml` file open in your editor, open the command palette with `Ctrl+Shift+P` and search for `MJML: Export to HTML`. This will convert the `.mjml` file to a `.html` file and now you can save it in the build directory.
 
-# How-to (Linux)
+# How-to start backend and db (Linux)
+
+Before anything, check that:
+- you have copied the .env.example in a file called just .env
+- since the config.py needs that config, and also the docker compose, as a shortcut copy the same .env file in the root folder, app/ folder and app/core/ folder.
 
 Follow the steps in order:
 
@@ -184,13 +188,36 @@ _source .venv/bin/activate_
 - setup db:  
 _alembic upgrade head_
 
-- drop db tables:  
+- move in app folder:
+_cd app_
+
+- start backend on localhost port 5000:
+_uvicorn main:app --host 127.0.0.1 --port 5000 --reload_
+
+- [drop db tables]:  
 _alembic downgrade base_
 
-- destroy container:  
+- [destroy container]:  
 _sudo docker-compose down db_  
 and  
 _sudo docker rm <name-of-container>_
 
 You can get the name of container from:  
 _docker ps -a_  
+
+
+# How-to create a new endpoint
+
+In this example, I will create the endpoint to create the group.
+
+1. First go to app/models.py file and add the Pydantic model for the group. That model should reflect the group table SQL fields (discoverable in the migration of alembic/versions/setup_group). With that the backend can correctly connect the endpoint to the database table.
+
+2. Create your own file in app/api/routes regarding what you are creating, in that case groups.py (ignore user, item, login since they are of template)
+
+3. In the groups.py file create the endpoint, specifying the correct path, passing the SessionDep as argument (that links with db session)
+
+4. Perform the necessary query to create group, using the proper function; take not that selection aren't called on session but on a statement that needs to be executed afterwards
+
+5. Get the backend up as described before.
+
+**Note**: if some CORS policy problems appears, please change the port of the backend when typing uvicorn command (and also the env in the frontend api) to test it.
