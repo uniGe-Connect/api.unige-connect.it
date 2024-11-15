@@ -220,4 +220,6 @@ In this example, I will create the endpoint to create the group.
 
 5. Get the backend up as described before.
 
+6. After successfully created the endpoint, please create your tests in the tests/api/routes folder.
+
 **Note**: if some CORS policy problems appears, please change the port of the backend when typing uvicorn command (and also the env in the frontend api) to test it.
