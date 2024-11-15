@@ -31,5 +31,6 @@ jobs:
           cd /home/hamid/alpha.api.unige-connect.it/_work/api.unige-connect.it/api.unige-connect.it
           cat /home/hamid/env/alpha.api.unige-connect.it > .env
           uv sync
+          source .venv/bin/activate
           alembic upgrade head
           pm2 restart alpha.api
