@@ -1,0 +1,33 @@
+name: alpha.api.unige-connect.it
+
+on:
+  push:
+    branches:
+      - alpha
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, alpha.api.unige-connect.it]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install UV
+        run: |
+          if ! command -v uv &> /dev/null; then
+            echo "UV is not installed. Installing UV..."
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+          else
+            echo "UV is already installed."
+          fi
+      - name: Setup .env files
+        run: |
+          cd /home/hamid/alpha.api.unige-connect.it/_work/unige-connect.it/unige-connect.it
+          cat /home/hamid/env/alpha.api.unige-connect.it > .env
+          uv sync
