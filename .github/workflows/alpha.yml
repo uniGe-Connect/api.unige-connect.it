@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.12.3'
 
       - name: Install UV
         run: |
@@ -28,6 +28,6 @@ jobs:
           fi
       - name: Setup .env files
         run: |
-          cd /home/hamid/alpha.api.unige-connect.it/_work/unige-connect.it/unige-connect.it
+          cd /home/hamid/alpha.api.unige-connect.it/_work/api.unige-connect.it/api.unige-connect.it
           cat /home/hamid/env/alpha.api.unige-connect.it > .env
           uv sync
