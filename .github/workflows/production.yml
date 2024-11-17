@@ -1,13 +1,13 @@
-name: alpha.api.unige-connect.it
+name: api.unige-connect.it
 
 on:
   push:
     branches:
-      - alpha
+      - production
 
 jobs:
   deploy:
-    runs-on: [self-hosted, alpha.api.unige-connect.it]
+    runs-on: [self-hosted, api.unige-connect.it]
 
     steps:
       - name: Checkout Code
@@ -28,9 +28,9 @@ jobs:
           fi
       - name: Setup .env files
         run: |
-          cd /home/hamid/alpha.api.unige-connect.it/_work/api.unige-connect.it/api.unige-connect.it
-          cat /home/hamid/env/alpha.api.unige-connect.it > .env
+          cd /home/hamid/api.unige-connect.it/_work/api.unige-connect.it/api.unige-connect.it
+          cat /home/hamid/env/api.unige-connect.it > .env
           uv sync
           source .venv/bin/activate
           alembic upgrade head
-          pm2 restart alpha
+          pm2 restart production
