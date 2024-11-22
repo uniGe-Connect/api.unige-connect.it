@@ -25,10 +25,9 @@ def upgrade():
         sa.Column("surname", sa.VARCHAR(), nullable=False),
         sa.Column("email", sa.VARCHAR(), unique=True, nullable=False),
         sa.Column("type", sa.Enum('STUDENT', 'PROFESSOR', 'OPERATOR', 'ADMIN', name='user_roles'), server_default='STUDENT', nullable=False),
-        
         sa.PrimaryKeyConstraint("id"),
     )
 
 
 def downgrade():
-    op.drop_table("user")
+    op.drop_table('user')

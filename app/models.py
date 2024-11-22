@@ -19,6 +19,7 @@ class Group(SQLModel, table=True):
     description: str = Field(max_length=255)
     type: GroupType  # Use the Enum as the type field
     owner_id: int
+    is_deleted: bool
 
 
 """from pydantic import BaseModel
