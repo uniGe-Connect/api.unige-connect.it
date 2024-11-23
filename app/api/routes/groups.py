@@ -80,3 +80,29 @@ def get_group(group_id: int, session: SessionDep) -> Any:
         raise HTTPException(status_code=404, detail="This group is deleted")
 
     return group
+
+
+
+@router.get("/groups")
+def get_groups(session: SessionDep) -> Any:
+    """
+    Retrieve all the groups.
+    """
+    
+    statement = select(Group)
+    groups = session.exec(statement).all()
+
+    # Convert each group ORM object to a dictionary (serialization)
+    group_list = []
+    for group in groups:
+        group_dict = {
+            'id': group.id,
+            'name': group.name,
+            'date': group.created_at,
+            'membersNumber': 10,
+            'description': group.description,
+            'type': group.type,
+            'tags': ['tag1', 'tag2']
+        }
+        group_list.append(group_dict)
+    return group_list

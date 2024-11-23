@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
+from datetime import datetime
 
 # Define the Enum for Group Type
 class GroupType(str, Enum):
