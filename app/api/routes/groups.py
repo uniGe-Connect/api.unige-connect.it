@@ -51,3 +51,28 @@ def get_groups_num(session: SessionDep) -> int:
     statement = select(func.count()).select_from(Group)
     count = session.exec(statement).all()
     return count[0]
+
+
+@router.get("/groups")
+def get_groups(session: SessionDep) -> Any:
+    """
+    Retrieve all the groups.
+    """
+    
+    statement = select(Group)
+    groups = session.exec(statement).all()
+
+    # Convert each group ORM object to a dictionary (serialization)
+    group_list = []
+    for group in groups:
+        group_dict = {
+            'id': group.id,
+            'name': group.name,
+            'date': group.created_at,
+            'membersNumber': 10,
+            'description': group.description,
+            'type': group.type,
+            'tags': ['tag1', 'tag2']
+        }
+        group_list.append(group_dict)
+    return group_list
