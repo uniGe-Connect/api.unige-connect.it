@@ -67,3 +67,16 @@ def delete_group(group_id: int, session: SessionDep) -> dict[str, str]:
     group.is_deleted = True
     session.commit()
     return {"message": "Group deleted successfully"}
+
+@router.get("/groups/{group_id}")
+def get_group(group_id: int, session: SessionDep) -> Any:
+    """
+    Fetch a group by its ID.
+    """
+
+    statement = select(Group).where(Group.id == group_id)
+    group = session.exec(statement).first()
+    if group.is_deleted:
+        raise HTTPException(status_code=404, detail="This group is deleted")
+
+    return group
