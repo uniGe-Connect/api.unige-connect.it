@@ -1,6 +1,7 @@
 import uuid
 from typing import Optional
 
+from datetime import datetime
 from enum import Enum
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -20,7 +21,8 @@ class Group(SQLModel, table=True):
     description: str = Field(max_length=255)
     type: GroupType  # Use the Enum as the type field
     owner_id: int
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    is_deleted: bool
 
 
 """from pydantic import BaseModel

@@ -52,6 +52,36 @@ def get_groups_num(session: SessionDep) -> int:
     count = session.exec(statement).all()
     return count[0]
 
+@router.delete("/groups/{group_id}")
+def delete_group(group_id: int, session: SessionDep) -> dict[str, str]:
+    """
+    Delete a group by its ID by marking it as deleted.
+    """
+
+    statement = select(Group).where(Group.id == group_id)
+    group = session.exec(statement).first()
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="There is no group with the provided id")
+    
+    group.is_deleted = True
+    session.commit()
+    return {"message": "Group deleted successfully"}
+
+@router.get("/groups/{group_id}")
+def get_group(group_id: int, session: SessionDep) -> Any:
+    """
+    Fetch a group by its ID.
+    """
+
+    statement = select(Group).where(Group.id == group_id)
+    group = session.exec(statement).first()
+    if group.is_deleted:
+        raise HTTPException(status_code=404, detail="This group is deleted")
+
+    return group
+
+
 
 @router.get("/groups")
 def get_groups(session: SessionDep) -> Any:
