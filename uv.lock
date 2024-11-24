@@ -52,7 +52,9 @@ dependencies = [
     { name = "bcrypt" },
     { name = "email-validator" },
     { name = "emails" },
+    { name = "faker" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "fastapi-pagination" },
     { name = "httpx" },
     { name = "jinja2" },
     { name = "passlib", extra = ["bcrypt"] },
@@ -83,7 +85,9 @@ requires-dist = [
     { name = "bcrypt", specifier = "==4.0.1" },
     { name = "email-validator", specifier = ">=2.1.0.post1,<3.0.0.0" },
     { name = "emails", specifier = ">=0.6,<1.0" },
+    { name = "faker", specifier = ">=33.0.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.114.2,<1.0.0" },
+    { name = "fastapi-pagination", specifier = ">=0.12.32" },
     { name = "httpx", specifier = ">=0.25.1,<1.0.0" },
     { name = "jinja2", specifier = ">=3.1.4,<4.0.0" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4,<2.0.0" },
@@ -376,6 +380,19 @@ wheels = [
 ]
 
 [[package]]
+name = "faker"
+version = "33.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/c7/0782eb872b96ee571701237be0dd85aef3713a15045ba42752a8aac7c8ce/faker-33.0.0.tar.gz", hash = "sha256:9b01019c1ddaf2253ca2308c0472116e993f4ad8fc9905f82fa965e0c6f932e9", size = 1850076 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/c3/0451555e7a9a233bc17f128cff7654ec60036d4ccbb8397dd949f28df176/Faker-33.0.0-py3-none-any.whl", hash = "sha256:68e5580cb6b4226710886e595eabc13127149d6e71e9d1db65506a7fbe2c7fce", size = 1889118 },
+]
+
+[[package]]
 name = "fastapi"
 version = "0.115.0"
 source = { registry = "https://pypi.org/simple" }
@@ -415,6 +432,19 @@ wheels = [
 [package.optional-dependencies]
 standard = [
     { name = "uvicorn", extra = ["standard"] },
+]
+
+[[package]]
+name = "fastapi-pagination"
+version = "0.12.32"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/56/b6/b431ddef4bec5011231ac3deb2da3a334207ef110987bc4971ac40f59865/fastapi_pagination-0.12.32.tar.gz", hash = "sha256:b808b5b8af493c51d96ae0091b60532b25688cbca1350f39cb72f10d4d69a6ab", size = 26531 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/23/0d57a0a67e3bf51b5d2d91a52c7bb7421bd8006aea694be01e37e9830901/fastapi_pagination-0.12.32-py3-none-any.whl", hash = "sha256:38e7e72abf252cbebbc1beff9081e4929762756c04959c471b2a5866bb7f0aaf", size = 42816 },
 ]
 
 [[package]]

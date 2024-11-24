@@ -22,6 +22,8 @@ dependencies = [
     "sentry-sdk[fastapi]<2.0.0,>=1.40.6",
     "pyjwt<3.0.0,>=2.8.0",
     "python3-saml>=1.16.0",
+    "fastapi-pagination>=0.12.32",
+    "faker>=33.0.0",
 ]
 
 [tool.uv]
