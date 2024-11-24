@@ -18,7 +18,7 @@ def config():
                 "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
             },
             "singleLogoutService": {
-                "url": f"{settings.APP_URL}/auth/logout",
+                "url": f"{settings.APP_URL}/auth/slo",
                 "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
             },
             "x509cert": open(os.path.join(cert_dir, "sp.crt")).read(),

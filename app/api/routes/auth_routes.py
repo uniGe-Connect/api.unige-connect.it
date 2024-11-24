@@ -10,7 +10,6 @@ from app.controllers.user_controller import user_controller
 from app.core import security
 from app.core.saml_config import config
 from app.core.config import settings
-from app.models.token_model import Token
 from app.models.user_model import UserModel
 from app.resources.user_resource import UserPublic
 from sqlmodel import select
@@ -69,16 +68,26 @@ async def acs(request: Request):
         user = user_controller.create(obj_in=user)
 
     expiration = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return Token(
-        access_token=security.create_access_token(user.id, expires_delta=expiration),
-        user=user,
-    )
+
+    link = f"{settings.FRONTEND_URL}/redirect?token={security.create_access_token(user.id, expires_delta=expiration)}"
+    return RedirectResponse(url=link, status_code=303)
 
 
 @router.get("/auth/logout", dependencies=[Depends(auth_user)])
 async def logout(request: Request):
     auth = _init_saml_auth(request)
-    return RedirectResponse(auth.logout(return_to='https://unige-connect.it'))
+
+    url = auth.logout()
+    return {"redirect_url": url}
+
+@router.get("/auth/slo")
+async def slo(request: Request):
+    auth = _init_saml_auth(request)
+
+    auth.process_slo()
+    url = f"{settings.FRONTEND_URL}/redirect"
+    return RedirectResponse(url=url, status_code=303)
+
 
 
 def _prepare_saml_request(request: Request):
