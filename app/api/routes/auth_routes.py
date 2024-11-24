@@ -1,11 +1,11 @@
 from datetime import timedelta
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
-from app.api.deps import CurrentUser
+from app.api.deps import CurrentUser, auth_user
 from app.controllers.user_controller import user_controller
 from app.core import security
 from app.core.saml_config import config
@@ -24,7 +24,7 @@ async def login(request: Request):
     return {"redirect_url": auth.login()}
 
 
-@router.post("/auth/me", response_model=UserPublic)
+@router.get("/auth/me", response_model=UserPublic, dependencies=[Depends(auth_user)])
 def test_token(current_user: CurrentUser) -> Any:
     return current_user
 
@@ -68,15 +68,14 @@ async def acs(request: Request):
 
         user = user_controller.create(obj_in=user)
 
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expiration = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
-        access_token=security.create_access_token(
-            user.id, expires_delta=access_token_expires
-        )
+        access_token=security.create_access_token(user.id, expires_delta=expiration),
+        user=user,
     )
 
 
-@router.get("/auth/logout")
+@router.get("/auth/logout", dependencies=[Depends(auth_user)])
 async def logout(request: Request):
     auth = _init_saml_auth(request)
     return RedirectResponse(auth.logout(return_to='https://unige-connect.it'))

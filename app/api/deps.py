@@ -28,7 +28,7 @@ SessionDep = Annotated[Session, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> UserModel:
+def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -46,7 +46,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> UserModel:
     return user
 
 
-CurrentUser = Annotated[UserModel, Depends(get_current_user)]
+CurrentUser = Annotated[UserModel, Depends(auth_user)]
 
 
 def get_current_active_superuser(current_user: CurrentUser) -> UserModel:

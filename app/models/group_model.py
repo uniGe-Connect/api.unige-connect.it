@@ -5,6 +5,8 @@ from enum import Enum
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
+from app.api.deps import CurrentUser
+
 
 class GroupTypes(str, Enum):
     public_open = "public_open"
@@ -28,4 +30,4 @@ class GroupRequest(BaseModel):
     topic: str
     description: str
     type: GroupTypes
-    owner_id: None
+    owner_id: uuid.UUID = CurrentUser.id
