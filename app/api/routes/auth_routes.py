@@ -20,6 +20,7 @@ router = APIRouter()
 @router.get("/auth/login")
 async def login(request: Request):
     auth = _init_saml_auth(request)
+
     return {"redirect_url": auth.login()}
 
 
@@ -33,9 +34,9 @@ async def acs(request: Request):
     form_data = await request.form()
 
     saml_request = {
-        'http_host': request.client.host,
+        'http_host': settings.HTTP_HOST,
         'script_name': request.url.path,
-        'server_port': str(request.url.port),
+        'server_port': settings.SERVER_PORT,
         'get_data': dict(request.query_params),
         'post_data': dict(form_data),
     }
@@ -80,6 +81,7 @@ async def logout(request: Request):
     url = auth.logout()
     return {"redirect_url": url}
 
+
 @router.get("/auth/slo")
 async def slo(request: Request):
     auth = _init_saml_auth(request)
@@ -89,12 +91,11 @@ async def slo(request: Request):
     return RedirectResponse(url=url, status_code=303)
 
 
-
 def _prepare_saml_request(request: Request):
     return {
-        'http_host': request.client.host,
+        'http_host': settings.HTTP_HOST,
         'script_name': request.url.path,
-        'server_port': str(request.url.port),
+        'server_port': settings.SERVER_PORT,
         'get_data': request.query_params,
         'post_data': request.form() if request.method == "POST" else {}
     }
