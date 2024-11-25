@@ -12,7 +12,7 @@ def config():
         "strict": True,
         "debug": True,
         "sp": {
-            "entityId": "https://sp.unige-connect.it/",
+            "entityId": settings.ENTITY_ID,
             "assertionConsumerService": {
                 "url": f"{settings.APP_URL}/auth/acs",
                 "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
