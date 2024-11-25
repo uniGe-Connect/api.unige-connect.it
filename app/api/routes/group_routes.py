@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, Query, HTTPException
-from typing import Optional
+from typing import Optional, Any
 
 from sqlmodel import select
 
@@ -21,6 +21,11 @@ def index(current_user: CurrentUser, owner: Optional[str] = Query(None)) -> Grou
     groups = group_controller.get_multi(query=owner)
 
     return GroupsPublic(data=groups, count=len(groups))
+
+
+@router.get("/groups/count")
+def count() -> Any:
+    return group_controller.get_count()
 
 
 @router.get("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )

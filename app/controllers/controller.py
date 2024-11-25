@@ -1,11 +1,9 @@
 from typing import Any, Generic, TypeVar
 from uuid import UUID
 
-from fastapi import HTTPException
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
 from pydantic import BaseModel
-from sqlalchemy import exc
 from sqlmodel import Session, SQLModel, func, select
 from sqlmodel.sql.expression import Select
 from app.core.db import get_session
