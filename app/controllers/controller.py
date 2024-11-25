@@ -153,7 +153,7 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def remove(self, *, id: UUID | str) -> ModelType:
         response = self.db_session.exec(select(self.model).where(self.model.id == id))
-        obj = response.scalar_one()
+        obj = response.one_or_none()
         self.db_session.delete(obj)
         self.db_session.commit()
         return obj
