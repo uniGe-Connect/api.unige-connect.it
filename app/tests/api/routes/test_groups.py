@@ -8,92 +8,96 @@ from app.controllers import user_controller
 from app.core.db import get_session
 from fastapi.encoders import jsonable_encoder
 from app.core.security import create_access_token
+import pytest
 from datetime import timedelta
 import uuid
 from datetime import datetime
 
-    
-def fake_auth_user(test_user_id):
-    user = UserModel(
-        id=test_user_id,
-        name="Test User",
-        last_name="Last Name",
-        email="test@example2.com",
-        serial_number="test",
-        type="student",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        )
-    app.dependency_overrides[auth_user] = lambda: user
-    return user
+# Fixtures
+@pytest.fixture
+def headers():
+    test_user_id = "123e4567-e89b-12d3-a456-426614174000"
+    expires_delta = timedelta(hours=1)  
+    token = create_access_token(subject=test_user_id, expires_delta=expires_delta) 
+    return {"Authorization": f"Bearer {token}"}
 
-test_user_id = str(uuid.uuid4())
-user = fake_auth_user(test_user_id=test_user_id)
-expires_delta = timedelta(hours=1) # Define token expiration time (1 hour)
-token = create_access_token(subject=test_user_id, expires_delta=expires_delta) #create the token
-headers = {"Authorization": f"Bearer {token}"}
+@pytest.fixture
+def test_user_id():
+    return "123e4567-e89b-12d3-a456-426614174000"
 
-def fake_create_group(id):
-    group_request ={
-        "id": str(id),
-        "name": "TestName",
+@pytest.fixture
+def client():
+    from app.main import app
+    return TestClient(app)
+
+@pytest.fixture
+def group_id(client, headers, test_user_id):
+    group_id = uuid.uuid4()  
+    group_request = {
+        "id": str(group_id),
+        "name": "TestName2",
         "description": "TestDescription",
         "topic": "TestTopic",
-        "type": GroupTypes.private,
+        "type": "public_open",  
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "owner_id": str(CurrentUser.id)
+        "owner_id": str(test_user_id)
     }
-    group_request = jsonable_encoder(group_request)
-    response = client.post("/groups", json=group_request)
-    return response.json()
+    response = client.post("/groups", json=group_request, headers=headers)
+    assert response.status_code == 200
+    return response.json()["id"] 
 
+#Test cases
 
-def delete_fake_group(id):
-    response = client.delete(f"/groups/{id}")
-    return response.json()    
-    
-
-client = TestClient(app)
-
-# def test_create_group(client: TestClient) -> None:
-#     # data = {"name": "TestName", "description": "TestDescription", "topic": "TestTopic",
-#     #         "type": GroupTypes.private, "created_at": "555", "owner_id": "1"}
-
-#     current_user = mock_auth_user()
-
-#     data = {
-#     "name": "TestName",
-#     "description": "TestDescription",
-#     "topic": "TestTopic",
-#     "type": GroupTypes.private,
-#     "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-#     "owner_id": current_user["id"]
-# }
-#     response = client.post("/groups", json=data)
-#     assert response.status_code == 200
-#     content = response.json()
-#     assert "id" in content
-
-
-
-def test_get_groups_num(client: TestClient) -> None:
-    response = client.get("/groups/count")
+def test_get_groups_num(client: TestClient, headers) -> None:
+    response = client.get("/groups/count", headers=headers)
     assert response.status_code == 200
     content = response.json()
     assert isinstance(content, int)
 
-def test_get_group_by_id(client: TestClient) ->None:
+def test_get_group_by_id(client: TestClient,headers) ->None:
     response = client.get("/groups", headers=headers)   
     assert response.status_code == 200
-    first_item = response.json()["data"][0] #first group
+    first_item = response.json()["data"][0] 
     group_id = first_item["id"]
-    response = client.get(f"/groups/{group_id}", headers=headers) #test get of the first group
+    response = client.get(f"/groups/{group_id}", headers=headers) 
+    assert response.status_code == 200
+
+def test_get_all_groups(client: TestClient, headers) -> None:
+    response = client.get("/groups", headers=headers)
+    assert response.status_code == 200
+    assert len(response.json()["data"]) > 0  
+    first_item = response.json()["data"][0]  
+    expected_keys = {"id", "name", "topic", "description", "type", "owner_id", "created_at", "updated_at"}
+    assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
+    
+def test_create_group(client: TestClient, headers, test_user_id) -> str:
+    group_id = uuid.uuid4()
+    group_request = {
+        "id": str(group_id),
+        "name": "TestName2",
+        "description": "TestDescription",
+        "topic": "TestTopic",
+        "type": "public_open", 
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "owner_id": str(test_user_id)
+    }
+    response = client.post("/groups", json=group_request, headers=headers)
     assert response.status_code == 200
     
-def test_get_all_groups():
-    response = client.get("/groups", headers=headers)   
+def test_search_group_by_ownerid(client: TestClient, headers, test_user_id) -> None:
+    response = client.get("/groups", headers=headers, params={"owner_id": test_user_id})
     assert response.status_code == 200
-    assert len(response.json()["data"]) > 0  #check if the lenght of the response is greater than 0
-    first_item = response.json()["data"][0]  #check that the firts group contains the correct fields
-    expected_keys = {"id", "name", "topic", "description", "type", "owner_id", "created_at", "updated_at"}
-    assert expected_keys.issubset(first_item.keys()), f"Miss some fields: {expected_keys - set(first_item.keys())}"
+    assert len(response.json()["data"]) > 0
+
+def test_search_createdGroup_by_id(client: TestClient, group_id: str, headers) -> None:
+    response = client.get(f"/groups/{group_id}", headers=headers)
+    assert response.status_code == 200
+    
+def test_delete_group(client: TestClient, group_id: str, headers) -> None:
+    response = client.delete(f"/groups/{group_id}", headers=headers)
+    assert response.status_code == 200
+   
+
+
+    
+
