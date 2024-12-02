@@ -3,16 +3,17 @@ from datetime import datetime
 from enum import Enum
 
 from pydantic import EmailStr
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .group_model import GroupModel
 
 class UserTypes(str, Enum):
     professor = "professor"
     student = "student"
 
-
-class UserModel(SQLModel, table=True):
-    __tablename__ = "users"
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+class UserBaseModel(SQLModel):
     name: str | None = Field(default=None, max_length=255)
     last_name: str | None = Field(default=None, max_length=255)
     email: EmailStr = Field(unique=True, index=True, max_length=255)
@@ -20,3 +21,10 @@ class UserModel(SQLModel, table=True):
     type: UserTypes = Field(default="student")
     created_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+class UserModel(UserBaseModel, table=True):
+    __tablename__ = "users"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    # Get the user groups
+    groups: List["GroupModel"] = Relationship(back_populates="user")
