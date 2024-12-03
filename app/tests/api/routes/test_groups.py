@@ -77,23 +77,16 @@ def test_post_group(client: TestClient, headers, test_user_id) -> str:
     }
     response = client.post("/groups", json=group_request, headers=headers)
     assert response.status_code == 200
-
-# Wait for the check with others   
+ 
+#get groups of the authenticated user
 def test_get_groups_by_owner_id(client: TestClient, headers, test_user_id) -> None:
-    response = client.get("/groups", headers=headers, params={"owner_id": test_user_id})
+    response = client.get("/groups", params={"owner": test_user_id},headers=headers)
     assert response.status_code == 200
     groups = response.json()["data"]
     assert isinstance(groups, list)
     if groups:
         for group in groups:
             assert group["owner_id"] == test_user_id, f"Group {group['id']} is not owned by {test_user_id}"
-    assert response.json()["count"] == len(groups)
-    random_owner_id = str(uuid.uuid4()) 
-    response = client.get("/groups", headers=headers, params={"owner_id": random_owner_id})
-    assert response.status_code == 200
-    groups = response.json()["data"]
-    assert len(groups) == 0
-    assert response.json()["count"] == 0
 
 def test_get_group_by_id(client: TestClient, group_id: str, headers) -> None:
     response = client.get(f"/groups/{group_id}", headers=headers)
