@@ -1,9 +1,8 @@
 from datetime import timedelta
-from typing import Any, Annotated
+from typing import Any
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordRequestForm
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from app.api.deps import CurrentUser, auth_user
@@ -105,16 +104,3 @@ def _prepare_saml_request(request: Request):
 def _init_saml_auth(request: Request):
     saml_request = _prepare_saml_request(request)
     return OneLogin_Saml2_Auth(saml_request, config())
-
-
-@router.post("/docs/login", include_in_schema=False)
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    query = select(UserModel).where(UserModel.email == form_data.username)
-    users = user_controller.get_multi(query=query)
-    user = users[0] if users else None
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-
-    expiration = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    return {"access_token": security.create_access_token(user.id, expires_delta=expiration), "token_type": "bearer"}
