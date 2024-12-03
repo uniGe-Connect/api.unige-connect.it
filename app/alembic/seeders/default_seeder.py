@@ -29,7 +29,15 @@ def default_seeder():
             serial_number='s123457'
         )
 
-        session.add_all([first_user, second_user])
+        test_user = UserModel(
+            id=uuid.UUID("123e4567-e89b-12d3-a456-426614174000"),
+            name = "TEST_USER",
+            last_name="TU",
+            email=fake.email(),
+            serial_number='s000000'
+        )
+
+        session.add_all([first_user, second_user,test_user])
         session.commit()
 
         for _ in range(10):
