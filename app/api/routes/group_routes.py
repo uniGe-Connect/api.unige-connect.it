@@ -40,6 +40,12 @@ def store(request: GroupRequest, current_user: CurrentUser) -> GroupPublic:
     return group_controller.create(obj_in=request)
 
 
+@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
+def update(_id: uuid.UUID) -> GroupPublic:
+    group = group_controller.get(id=_id)
+    return group
+
+
 @router.delete("/groups/{_id}", response_model=GroupPublic)
 def destroy(_id: uuid.UUID, group: GroupModel = Depends(group_owner)) -> GroupPublic:
     return group_controller.remove(id=group.id)

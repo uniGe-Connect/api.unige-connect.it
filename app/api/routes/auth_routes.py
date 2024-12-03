@@ -1,8 +1,9 @@
 from datetime import timedelta
-from typing import Any
+from typing import Any, Annotated
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from app.api.deps import CurrentUser, auth_user
@@ -29,7 +30,7 @@ def test_token(current_user: CurrentUser) -> Any:
     return current_user
 
 
-@router.post("/auth/acs")
+@router.post("/auth/acs", include_in_schema=False)
 async def acs(request: Request):
     form_data = await request.form()
 
@@ -74,7 +75,7 @@ async def acs(request: Request):
     return RedirectResponse(url=link, status_code=303)
 
 
-@router.get("/auth/logout", dependencies=[Depends(auth_user)])
+@router.get("/auth/logout", dependencies=[Depends(auth_user)], include_in_schema=False)
 async def logout(request: Request):
     auth = _init_saml_auth(request)
 
@@ -82,7 +83,7 @@ async def logout(request: Request):
     return {"redirect_url": url}
 
 
-@router.get("/auth/slo")
+@router.get("/auth/slo", include_in_schema=False)
 async def slo(request: Request):
     auth = _init_saml_auth(request)
 
@@ -104,3 +105,16 @@ def _prepare_saml_request(request: Request):
 def _init_saml_auth(request: Request):
     saml_request = _prepare_saml_request(request)
     return OneLogin_Saml2_Auth(saml_request, config())
+
+
+@router.post("/docs/login", include_in_schema=False)
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    query = select(UserModel).where(UserModel.email == form_data.username)
+    users = user_controller.get_multi(query=query)
+    user = users[0] if users else None
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    expiration = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    return {"access_token": security.create_access_token(user.id, expires_delta=expiration), "token_type": "bearer"}

@@ -18,7 +18,7 @@ from app.models.token_model import TokenPayload
 from app.models.user_model import UserModel
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+    tokenUrl="docs/login"
 )
 
 
