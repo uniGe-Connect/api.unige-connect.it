@@ -37,3 +37,4 @@ def upgrade():
 def downgrade():
     op.drop_index(op.f("ix_group_owner_id"), table_name="groups")
     op.drop_table("groups")
+    op.execute("DROP TYPE IF EXISTS group_types")
