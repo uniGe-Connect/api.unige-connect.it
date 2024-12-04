@@ -8,7 +8,13 @@ from app.core.config import settings
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
-app = FastAPI()
+is_production = settings.ENVIRONMENT == "production"
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version="0.1.0",
+    docs_url=None if is_production else "/docs",  # Disable docs in production
+    redoc_url=None if is_production else "/redoc"
+)
 
 app.add_middleware(
     CORSMiddleware,

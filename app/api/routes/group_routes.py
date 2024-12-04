@@ -1,11 +1,11 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query
 from typing import Optional, Any
 
 from sqlmodel import select
 
-from app.api.deps import CurrentUser, auth_user
+from app.api.deps import CurrentUser, auth_user, group_owner
 from app.controllers.group_controller import group_controller
 from app.models.group_model import GroupRequest, GroupModel
 from app.resources.group_resource import GroupPublic, GroupsPublic
@@ -34,17 +34,18 @@ def show(_id: uuid.UUID) -> GroupPublic:
     return group
 
 
-@router.post("/groups", response_model=GroupPublic, dependencies=[Depends(auth_user)])
+@router.post("/groups", response_model=GroupPublic)
 def store(request: GroupRequest, current_user: CurrentUser) -> GroupPublic:
     request.owner_id = current_user.id
     return group_controller.create(obj_in=request)
 
 
-@router.delete("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
-def destroy(_id: uuid.UUID, current_user: CurrentUser) -> GroupPublic:
+@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
+def update(_id: uuid.UUID) -> GroupPublic:
     group = group_controller.get(id=_id)
+    return group
 
-    if group.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="You are not the owner of this group")
 
-    return group_controller.remove(id=_id)
+@router.delete("/groups/{_id}", response_model=GroupPublic)
+def destroy(_id: uuid.UUID, group: GroupModel = Depends(group_owner)) -> GroupPublic:
+    return group_controller.remove(id=group.id)
