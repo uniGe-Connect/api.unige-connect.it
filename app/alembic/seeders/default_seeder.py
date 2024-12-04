@@ -1,4 +1,5 @@
 import uuid
+import random
 
 from faker import Faker
 from sqlmodel import Session
@@ -47,7 +48,8 @@ def default_seeder():
                 topic=fake.word(),
                 description=fake.sentence(50),
                 type=GroupTypes.public_open,
-                owner_id=first_user.id
+                owner_id=first_user.id,
+                member_count=random.randint(1, 100)
             )
 
             session.add(group)
