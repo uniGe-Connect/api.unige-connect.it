@@ -5,6 +5,7 @@ from enum import Enum
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, Relationship
 from typing import List, TYPE_CHECKING
+from app.models.member_model import MemberModel
 
 if TYPE_CHECKING:
     from .group_model import GroupModel
@@ -28,3 +29,4 @@ class UserModel(UserBaseModel, table=True):
 
     # Get the user groups
     groups: List["GroupModel"] = Relationship(back_populates="user")
+    members: List["GroupModel"] = Relationship(back_populates="users", link_model=MemberModel)

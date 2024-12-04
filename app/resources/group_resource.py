@@ -9,6 +9,7 @@ class GroupPublic(SQLModel):
     topic: str
     description: str
     type: str
+    members_count: int
     created_at: datetime
 
 class GroupsPublic(SQLModel):
