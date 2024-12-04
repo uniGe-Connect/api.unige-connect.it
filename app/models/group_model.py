@@ -21,9 +21,9 @@ class GroupModel(SQLModel, table=True):
     description: str = Field(max_length=255)
     type: GroupTypes
     owner_id: uuid.UUID
+    member_count: int = Field(default=1)
     created_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
 
 class GroupRequest(BaseModel):
     name: str
