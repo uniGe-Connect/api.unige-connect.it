@@ -53,7 +53,7 @@ def test_get_first_group(client: TestClient,headers) ->None:
     group_id = first_item["id"]
     response = client.get(f"/groups/{group_id}", headers=headers) 
     assert response.status_code == 200
-    expected_keys = {"id", "name", "topic", "description", "type", "owner_id","member_count" "created_at", "updated_at"}
+    expected_keys = {"id", "name", "topic", "description", "type", "owner_id", "member_count", "created_at", "updated_at"}
     assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
 
 def test_get_all_groups(client: TestClient, headers) -> None:
@@ -61,7 +61,7 @@ def test_get_all_groups(client: TestClient, headers) -> None:
     assert response.status_code == 200
     assert len(response.json()["data"]) > 0  
     first_item = response.json()["data"][0]  
-    expected_keys = {"id", "name", "topic", "description", "type", "owner_id","member_count", "created_at", "updated_at"}
+    expected_keys = {"id", "name", "topic", "description", "type", "owner_id", "member_count", "created_at", "updated_at"}
     assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
     
 def test_post_group(client: TestClient, headers, test_user_id) -> str:
