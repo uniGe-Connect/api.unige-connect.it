@@ -92,7 +92,7 @@ def test_get_group_by_id(client: TestClient, group_id: str, headers) -> None:
     response = client.get(f"/groups/{group_id}", headers=headers)
     assert response.status_code == 200
     group = response.json()
-    expected_keys = {"id", "name", "topic", "description", "type", "owner_id","member_count", "created_at", "updated_at"}
+    expected_keys = {"id", "name", "topic", "description", "type", "owner_id", "member_count", "created_at", "updated_at"}
     assert expected_keys.issubset(group.keys()), f"Missing fields: {expected_keys - set(group.keys())}"
     assert group["description"] == "TestDescription"
     
