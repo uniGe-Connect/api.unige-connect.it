@@ -1,12 +1,13 @@
 import uuid
-
 from sqlmodel import SQLModel
+from app.models.user_model import UserBaseModel
 
-from app.models.user_model import UserModel
 
-
-class UserPublic(UserModel):
-    _id: uuid.UUID
+class UserPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    last_name: str
+    email: str
 
 
 class UsersPublic(SQLModel):

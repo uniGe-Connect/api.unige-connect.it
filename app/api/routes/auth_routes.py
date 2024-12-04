@@ -29,7 +29,7 @@ def test_token(current_user: CurrentUser) -> Any:
     return current_user
 
 
-@router.post("/auth/acs")
+@router.post("/auth/acs", include_in_schema=False)
 async def acs(request: Request):
     form_data = await request.form()
 
@@ -74,7 +74,7 @@ async def acs(request: Request):
     return RedirectResponse(url=link, status_code=303)
 
 
-@router.get("/auth/logout", dependencies=[Depends(auth_user)])
+@router.get("/auth/logout", dependencies=[Depends(auth_user)], include_in_schema=False)
 async def logout(request: Request):
     auth = _init_saml_auth(request)
 
@@ -82,7 +82,7 @@ async def logout(request: Request):
     return {"redirect_url": url}
 
 
-@router.get("/auth/slo")
+@router.get("/auth/slo", include_in_schema=False)
 async def slo(request: Request):
     auth = _init_saml_auth(request)
 
