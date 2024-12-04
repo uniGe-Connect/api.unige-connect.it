@@ -29,3 +29,5 @@ def upgrade():
 
 def downgrade():
     op.drop_table("users")
+    op.execute("DROP TYPE IF EXISTS user_types")
+
