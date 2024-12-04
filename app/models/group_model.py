@@ -18,13 +18,14 @@ class GroupTypes(str, Enum):
     public_closed = "public_closed"
     private = "private"
 
-
+    
 class GroupBaseModel(SQLModel):
     name: str | None = Field(default=None, max_length=255)
     topic: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None)
     type: GroupTypes = Field(default="public_open")
     owner_id: uuid.UUID = Field(foreign_key="users.id")
+    member_count: int = Field(default=1)
     created_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
