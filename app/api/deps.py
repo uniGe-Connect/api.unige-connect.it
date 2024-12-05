@@ -40,11 +40,11 @@ def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
     except (InvalidTokenError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
+            message="Expired session, try to login again.",
         )
     user = session.get(UserModel, token_data.sub)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, message="Unable to complete the authentication.")
 
     return user
 
@@ -52,15 +52,8 @@ def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
 CurrentUser = Annotated[UserModel, Depends(auth_user)]
 
 
-def get_current_active_superuser(current_user: CurrentUser) -> UserModel:
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403, detail="The user doesn't have enough privileges"
-        )
-    return current_user
-
 def group_owner(_id: uuid.UUID, current_user: UserModel = Depends(auth_user)) -> GroupModel:
     group = group_controller.get(id=_id)
     if group.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="You are not the owner of this group")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, message="Insufficient permissions.")
     return group
