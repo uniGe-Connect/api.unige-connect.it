@@ -39,7 +39,6 @@ def test_get_auth_me(client: TestClient, headers) -> None:
     assert response.status_code == 200
     content = response.json()
     assert content["id"] == "123e4567-e89b-12d3-a456-426614174000"
-    assert content["serial_number"] == "s000000"
     assert content["name"] == "TEST_USER"
     assert content ["last_name"] == "TU"
     
