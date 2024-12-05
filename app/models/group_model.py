@@ -43,4 +43,4 @@ class GroupRequest(BaseModel):
     topic: str
     description: str = Field(max_length=300)
     type: GroupTypes
-    owner_id: uuid.UUID
+    owner_id: uuid.UUID = Field(default=None)
