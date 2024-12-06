@@ -53,4 +53,13 @@ def upgrade():
 
 
 def downgrade():
+    # Drop indices
+    op.drop_index('ix_member_id', table_name='members')
+    op.drop_index('ix_group_id', table_name='members')
+    op.drop_index('ix_deleted_at', table_name='members')
+
+    # Drop the table
     op.drop_table("members")
+
+    # Drop the ENUM type
+    op.execute("DROP TYPE IF EXISTS member_types")
