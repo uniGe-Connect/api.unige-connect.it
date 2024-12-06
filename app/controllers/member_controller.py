@@ -25,7 +25,7 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
             member = MemberModel(user_id=user_id, group_id=group_id)
             member = self.create(obj_in=member)
 
-            group.members_count = group.members_count + 1
+            group.member_count = group.member_count + 1
             self.db_session.commit()
             
             return member

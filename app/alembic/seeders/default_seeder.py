@@ -49,7 +49,6 @@ def default_seeder():
                 description=fake.sentence(50),
                 type=GroupTypes.public_open,
                 owner_id=first_user.id,
-                member_count=random.randint(1, 100)
             )
 
             session.add(group)
@@ -76,7 +75,7 @@ def default_seeder():
                 )
 
                 session.add(member)
-                group.members_count = i + 1
+                group.member_count = i + 1
                 session.commit
 
                         
