@@ -1,6 +1,7 @@
 from typing import Any, Generic, TypeVar
 from uuid import UUID
 
+from fastapi import status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
 from pydantic import BaseModel
@@ -120,15 +121,15 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if created_by_id:
             db_obj.created_by_id = created_by_id
 
-        # try:
-        self.db_session.add(db_obj)
-        self.db_session.commit()
-        # except exc.IntegrityError:
-        # self.db_session.rollback()
-        #     raise HTTPException(
-        #         status_code=409,
-        #         detail="Resource already exists",
-        #     )
+        try:
+            self.db_session.add(db_obj)
+            self.db_session.commit()
+        except exc.IntegrityError:
+            self.db_session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Resource already exists",
+            )
         self.db_session.refresh(db_obj)
         return db_obj
 

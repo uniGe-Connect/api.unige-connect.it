@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 
@@ -18,7 +18,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     users = user_controller.get_multi(query=query)
     user = users[0] if users else None
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect username or password")
 
     expiration = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
