@@ -5,13 +5,12 @@ from enum import Enum
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
-from app.models.user_model import UserModel
 from sqlmodel import Relationship
-from typing import TYPE_CHECKING
+from typing import List, TYPE_CHECKING
+from app.models.member_model import MemberModel
 
 if TYPE_CHECKING:
     from .user_model import UserModel
-
 
 class GroupTypes(str, Enum):
     public_open = "public_open"
@@ -35,8 +34,8 @@ class GroupModel(GroupBaseModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
     # Get the owner of the group
-    user: UserModel = Relationship(back_populates="groups")
-
+    user: "UserModel" = Relationship(back_populates="groups")
+    users: List["UserModel"] = Relationship(back_populates='groups', link_model=MemberModel)
 
 class GroupRequest(BaseModel):
     name: str
