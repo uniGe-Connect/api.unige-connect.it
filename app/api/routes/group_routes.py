@@ -19,21 +19,8 @@ def index(current_user: CurrentUser, owner: Optional[str] = Query(None)) -> Grou
         owner = select(GroupModel).where(GroupModel.owner_id == current_user.id)
 
     groups = group_controller.get_multi(query=owner)
-    aux = []
-    for group in groups:
-        aux.append(
-            GroupPublic(
-                id= group.id,
-                name= group.name,
-                topic= group.topic,
-                description= group.description,
-                type= group.type,
-                created_at= group.created_at,
-                is_member = any(user.id == CurrentUser.id for user in group.users)
-              )
-            )
-
-    return GroupsPublic(data=aux, count=len(aux))
+    groups_public = [GroupPublic(**group.__dict__,is_member = any(user.id == CurrentUser.id for user in group.users)) for group in groups]
+    return GroupsPublic(data=groups_public, count=len(groups_public))
 
 
 @router.get("/groups/count")
