@@ -95,7 +95,6 @@ def _prepare_saml_request(request: Request):
     return {
         'http_host': settings.HTTP_HOST,
         'script_name': request.url.path,
-        'server_port': settings.SERVER_PORT,
         'get_data': request.query_params,
         'post_data': request.form() if request.method == "POST" else {}
     }

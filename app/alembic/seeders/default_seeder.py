@@ -18,7 +18,7 @@ def default_seeder():
             id=fake.uuid4(),
             name=fake.name(),
             last_name=fake.last_name(),
-            email=fake.email(),
+            email='student@unige.it',
             serial_number='s123456'
         )
 
