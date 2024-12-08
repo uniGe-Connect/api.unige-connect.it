@@ -55,6 +55,8 @@ def headers(user: UserModel):
 
 
 def test_join_group_which_i_am_not_member(client: TestClient, headers, user, group) -> None:
+    assert group.member_count == 1
+    
     response = client.post(f"/groups/{group.id}/members", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["group_id"] == str(group.id)
@@ -66,6 +68,8 @@ def test_join_group_which_i_am_not_member(client: TestClient, headers, user, gro
 
 
 def test_join_group_which_i_am_member_already(client: TestClient, headers, user, group) -> None:
+    assert group.member_count == 1
+    
     response = client.post(f"/groups/{group.id}/members", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["group_id"] == str(group.id)
