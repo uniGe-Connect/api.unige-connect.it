@@ -71,7 +71,14 @@ def test_post_group(client: TestClient, headers, test_user_id) -> str:
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
     response = client.post("/groups", json=group_request, headers=headers)
+    group = response.json()
     assert response.status_code == 200
+    assert group["member_count"] == 1
+
+    group_id=group["id"]
+    #Try to join my own group
+    response = client.post(f"/groups/{group_id}/members", headers=headers)
+    assert response.status_code == 400
  
 def test_get_group_by_id(client: TestClient, group_id: str, headers) -> None:
     response = client.get(f"/groups/{group_id}", headers=headers)

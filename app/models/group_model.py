@@ -24,7 +24,7 @@ class GroupBaseModel(SQLModel):
     description: str | None = Field(default=None)
     type: GroupTypes = Field(default="public_open")
     owner_id: uuid.UUID = Field(foreign_key="users.id")
-    member_count: int = Field(default=1)
+    member_count: int = Field(default=0)
     created_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 

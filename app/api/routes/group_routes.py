@@ -9,6 +9,7 @@ from app.api.deps import CurrentUser, auth_user, group_owner
 from app.controllers.group_controller import group_controller
 from app.models.group_model import GroupRequest, GroupModel
 from app.resources.group_resource import GroupPublic, GroupsPublic
+from app.controllers.member_controller import member_controller
 
 router = APIRouter()
 
@@ -37,7 +38,12 @@ def show(_id: uuid.UUID) -> GroupPublic:
 @router.post("/groups", response_model=GroupPublic)
 def store(request: GroupRequest, current_user: CurrentUser) -> GroupPublic:
     request.owner_id = current_user.id
-    return group_controller.create(obj_in=request)
+    group = group_controller.create(obj_in=request)
+    member_controller.create_member(
+        user_id=current_user.id,
+        group_id=group.id
+    )
+    return group
 
 
 @router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
