@@ -11,6 +11,7 @@ class GroupPublic(SQLModel):
     type: str
     member_count: int
     created_at: datetime
+    is_member: bool = False
 
 
 class GroupsPublic(SQLModel):
