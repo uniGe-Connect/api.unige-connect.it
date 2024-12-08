@@ -40,8 +40,7 @@ class Settings(BaseSettings):
     APP_URL: str = "http://localhost:8000"
     FRONTEND_URL: str = "http://localhost:3000"
     ENTITY_ID: str = "localhost"
-    HTTP_HOST: str = "127.0.0.1"
-    SERVER_PORT: str = "8000"
+    HTTP_HOST: str = "127.0.0.1:8000"
 
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
