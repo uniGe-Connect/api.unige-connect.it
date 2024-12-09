@@ -16,3 +16,7 @@ class GroupPublic(SQLModel):
 
 class GroupsPublic(SQLModel):
     data: list[GroupPublic]
+
+class MyGroups(SQLModel):
+    owned_groups: list[GroupPublic]
+    joined_groups: list[GroupPublic]

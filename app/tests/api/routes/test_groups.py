@@ -1,9 +1,18 @@
 from fastapi.testclient import TestClient
+from fastapi import status
+from app.controllers.group_controller import group_controller
+from app.controllers.user_controller import user_controller
+from app.controllers.member_controller import member_controller
 from app.core.security import create_access_token
 import pytest
 from datetime import timedelta
 import uuid
 from datetime import datetime
+
+from app.models.group_model import GroupRequest, GroupTypes
+from app.models.user_model import UserModel
+from faker import Faker
+fake = Faker()
 
 # Fixtures
 @pytest.fixture
@@ -35,6 +44,32 @@ def group_id(client, headers, test_user_id):
     response = client.post("/groups", json=group_request, headers=headers)
     assert response.status_code == 200
     return response.json()["id"] 
+
+
+@pytest.fixture
+def other_user():
+    user = UserModel(
+        id=fake.uuid4(),
+        name=fake.name(),
+        last_name=fake.last_name(),
+        email=fake.email(),
+        serial_number=f"s{fake.random_number(digits=6)}",
+    )
+    user_controller.create(obj_in=user)
+    return user
+
+@pytest.fixture
+def other_user_group(other_user: UserModel):
+    group = GroupRequest(
+        name=fake.name(),
+        topic=fake.word(),
+        description=fake.sentence(2),
+        type=GroupTypes.public_open,
+        owner_id=other_user.id
+    )
+    group = group_controller.create(obj_in=group)
+    return group
+
 
 #Test cases
 
@@ -94,8 +129,8 @@ def test_delete_group(client: TestClient, group_id: str, headers, test_user_id) 
     assert response.status_code == 200
     groups = response.json()["data"]
     assert len(groups) > 0
-    snd_response = client.get("/groups?owner=me", headers=headers)  # owned groups
-    my_groups = snd_response.json()["data"]
+    snd_response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
+    my_groups = snd_response.json()["owned_groups"]
     filtered_groups = [group for group in groups if group["id"] not in {my_group["id"] for my_group in my_groups}]
     group_id = filtered_groups[0]["id"]
     response = client.delete(f"/groups/{group_id}", headers=headers)
@@ -105,3 +140,31 @@ def test_delete_group(client: TestClient, group_id: str, headers, test_user_id) 
     group_id = my_groups[0]["id"]
     response = client.delete(f"/groups/{group_id}", headers=headers)
     assert response.status_code == 200
+
+def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_group) -> None:
+    response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
+    owned_groups = response.json()["owned_groups"]
+    joined_groups = response.json()["joined_groups"]
+    assert any(group_id == o_group["id"] for o_group in owned_groups)
+    assert any(group_id == j_group["id"] for j_group in joined_groups) == False
+    assert len(joined_groups) == 0
+
+    response = client.post(f"/groups/{other_user_group.id}/members", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
+    owned_groups = response.json()["owned_groups"]
+    joined_groups = response.json()["joined_groups"]
+    assert any(str(other_user_group.id) == o_group["id"] for o_group in owned_groups) == False
+    assert any(str(other_user_group.id) == j_group["id"] for j_group in joined_groups)
+    assert len(joined_groups) == 1
+
+    #Removing the group to clean the user joined group after the test
+    group_controller.remove(id=other_user_group.id)
+   
+
+    
+
+
+
+

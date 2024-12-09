@@ -8,18 +8,26 @@ from sqlmodel import select
 from app.api.deps import CurrentUser, auth_user, group_owner
 from app.controllers.group_controller import group_controller
 from app.models.group_model import GroupRequest, GroupModel
-from app.resources.group_resource import GroupPublic, GroupsPublic
+from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
 from app.controllers.member_controller import member_controller
 
 router = APIRouter()
 
 
-@router.get("/groups", response_model=GroupsPublic, dependencies=[Depends(auth_user)], )
-def index(current_user: CurrentUser, owner: Optional[str] = Query(None)) -> GroupsPublic:
-    if owner:
-        owner = select(GroupModel).where(GroupModel.owner_id == current_user.id)
+@router.get("/groups", response_model=GroupsPublic | MyGroups, dependencies=[Depends(auth_user)], )
+def index(current_user: CurrentUser, member: Optional[str] = Query(None)) -> GroupsPublic | MyGroups:
+    if member:
+        owned_groups = []
+        joined_groups = []
+        for group in current_user.members:
+            group_public = [GroupPublic(**group.__dict__, is_member = True)]
+            if(any(group.id == owned_group.id for owned_group in current_user.groups)):
+                owned_groups += group_public
+            else:
+                joined_groups += group_public
+        return MyGroups(owned_groups=owned_groups, joined_groups=joined_groups)
 
-    groups = group_controller.get_multi(query=owner)
+    groups = group_controller.get_multi(query=member)
     groups_public = [GroupPublic(**group.__dict__,is_member = any(user.id == current_user.id for user in group.users)) for group in groups]
     return GroupsPublic(data=groups_public, count=len(groups_public))
 
