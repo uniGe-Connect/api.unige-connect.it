@@ -36,6 +36,7 @@ async def acs(request: Request):
     saml_request = {
         'http_host': settings.HTTP_HOST,
         'script_name': request.url.path,
+        'server_port': settings.SERVER_PORT,
         'get_data': dict(request.query_params),
         'post_data': dict(form_data),
     }
