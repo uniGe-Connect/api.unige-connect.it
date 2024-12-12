@@ -164,6 +164,24 @@ def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_gr
    
 
     
+def test_is_member_field(client: TestClient, group_id: str, headers, other_user_group) -> None:
+    response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
+    owned_groups = response.json()["owned_groups"]
+    joined_groups = response.json()["joined_groups"]
+    user_groups_id = [o_group["id"] for o_group in owned_groups] +  [j_group["id"] for j_group in joined_groups]
+    all_groups = client.get("/groups?", headers=headers).json()["data"]
+
+    #All groups of which I am member have the is_member field set to True
+    assert all(
+        group["is_member"] == True if group["id"] in user_groups_id else True
+        for group in all_groups
+    )
+
+    #All groups of which I am not member have the is_member field set to False
+    assert all(
+        group["is_member"] == False if group["id"] not in user_groups_id else True
+        for group in all_groups
+    )
 
 
 
