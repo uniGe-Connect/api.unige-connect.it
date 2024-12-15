@@ -2,6 +2,7 @@ import uuid
 import random
 
 from faker import Faker
+from app.alembic.seeders.faker_group_provider import group_name_provider
 from sqlmodel import Session
 from app.core.db import (engine)
 from app.models.group_model import GroupModel, GroupTypes
@@ -10,6 +11,7 @@ from app.models.member_model import MemberModel, MemberTypes
 
 def default_seeder():
     fake = Faker()
+    fake.add_provider(group_name_provider)
 
     print("Starting seeding the database ....")
 
@@ -44,7 +46,7 @@ def default_seeder():
         for i in range(10):
             group = GroupModel(
                 id=uuid.uuid4(),
-                name=fake.name(),
+                name=fake.group_name(),
                 topic=fake.word(),
                 description=fake.sentence(50),
                 type=GroupTypes.public_open,
