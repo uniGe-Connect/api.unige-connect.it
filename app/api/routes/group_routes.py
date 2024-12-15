@@ -52,6 +52,7 @@ def store(request: GroupRequest, current_user: CurrentUser) -> GroupPublic:
         group_id=group.id
     )
     return group
+    return GroupPublic(**group.__dict__, is_member = True)
 
 
 @router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
