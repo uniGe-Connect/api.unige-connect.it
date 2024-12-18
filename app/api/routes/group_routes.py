@@ -1,6 +1,6 @@
 import uuid
-
-from fastapi import APIRouter, Depends, Query
+import logging
+from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import Optional, Any
 
 from sqlmodel import select
@@ -12,6 +12,8 @@ from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
 from app.controllers.member_controller import member_controller
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 @router.get("/groups", response_model=GroupsPublic | MyGroups, dependencies=[Depends(auth_user)], )
@@ -55,12 +57,21 @@ def store(request: GroupRequest, current_user: CurrentUser) -> GroupPublic:
     return GroupPublic(**group.__dict__, is_member = True)
 
 
-@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
-def update(_id: uuid.UUID) -> GroupPublic:
-    group = group_controller.get(id=_id)
-    return group
+# @router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
+# def update(_id: uuid.UUID) -> GroupPublic:
+#     group = group_controller.get(id=_id)
+#     return group
 
 
 @router.delete("/groups/{_id}", response_model=GroupPublic)
 def destroy(_id: uuid.UUID, group: GroupModel = Depends(group_owner)) -> GroupPublic:
     return group_controller.remove(id=group.id)
+
+@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)],)
+def update(_id: uuid.UUID, request: GroupRequest, group: GroupModel = Depends(group_owner)) -> GroupPublic:
+    try:
+        updated_group = group_controller.update(group_id=group.id, obj_in=request)
+        return GroupPublic(**updated_group.__dict__, is_member=True)
+    except Exception as e:
+        logger.error(f"Error updating group: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
