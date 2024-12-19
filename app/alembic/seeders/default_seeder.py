@@ -57,7 +57,7 @@ def default_seeder():
             session.commit()
 
             for j in range(10):
-                role = MemberTypes.owner if i == 0 else MemberTypes.member
+                role = MemberTypes.owner if j == 0 else MemberTypes.member
                 user = UserModel(
                     id=fake.uuid4(),
                     name=fake.first_name(),
@@ -77,7 +77,7 @@ def default_seeder():
                 )
 
                 session.add(member)
-                group.member_count = i + 1
+                group.member_count = j + 1
                 session.commit
 
                         
