@@ -51,6 +51,7 @@ def default_seeder():
                 description=fake.sentence(50),
                 type=GroupTypes.public_open,
                 owner_id=first_user.id,
+                created_at=fake.date_time_this_year(),
             )
 
             session.add(group)

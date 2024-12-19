@@ -44,7 +44,7 @@ def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
         )
     user = session.get(UserModel, token_data.sub)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unable to complete the authentication.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to complete the authentication.")
 
     return user
 
