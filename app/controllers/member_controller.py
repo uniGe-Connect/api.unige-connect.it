@@ -5,7 +5,7 @@ from app.controllers.group_controller import group_controller
 from app.models.member_model import MemberModel
 from app.models.user_model import UserModel
 from app.resources.member_resource import MemberPublic
-from app.resources.user_resource import UsersMemberPublic, UsersPublic
+from app.resources.user_resource import UsersMemberPublic
 from app.models.group_model import GroupTypes
 from sqlmodel import select
 
@@ -47,7 +47,7 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
         
         try:
             query = (
-                select(UserModel.name, UserModel.last_name)
+                select(UserModel.name, UserModel.last_name, MemberModel.role)
                 .join(MemberModel, UserModel.id == MemberModel.user_id)
                 .where(MemberModel.group_id == group_id)
             )

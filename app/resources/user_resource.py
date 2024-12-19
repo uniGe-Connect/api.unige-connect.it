@@ -1,6 +1,6 @@
 import uuid
 from sqlmodel import SQLModel
-from app.models.user_model import UserBaseModel
+from app.models.member_model import MemberTypes
 
 
 class UserPublic(SQLModel):
@@ -18,6 +18,7 @@ class UsersPublic(SQLModel):
 class UserMemberPublic(SQLModel):
     name: str
     last_name: str
+    role: MemberTypes
 
 
 class UsersMemberPublic(SQLModel):
