@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
-from app.api.deps import CurrentUser, auth_user
+from app.api.deps import CurrentUser, auth_user, SessionDep
 from app.controllers.user_controller import user_controller
 from app.core import security
 from app.core.saml_config import config
@@ -30,7 +30,7 @@ def test_token(current_user: CurrentUser) -> Any:
 
 
 @router.post("/auth/acs", include_in_schema=False)
-async def acs(request: Request):
+async def acs(request: Request, session: SessionDep):
     form_data = await request.form()
 
     saml_request = {
@@ -53,7 +53,7 @@ async def acs(request: Request):
 
     # check if the user is there
     query = select(UserModel).where(UserModel.email == auth.get_attribute("urn:oid:1.2.840.113549.1.9.1")[0])
-    users = user_controller.get_multi(query=query)
+    users = user_controller.get_multi(query=query, session=session)
 
     if len(users) > 0:
         user = users[0]
@@ -66,7 +66,7 @@ async def acs(request: Request):
             serial_number=auth.get_attribute('serial_number')[0],
         )
 
-        user = user_controller.create(obj_in=user)
+        user = user_controller.create(obj_in=user, session=session)
 
     expiration = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
