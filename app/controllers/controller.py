@@ -27,7 +27,7 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return response.one_or_none()
 
     def get_by_ids(
-        self, *, list_ids: list[UUID | str], session: Session
+            self, *, list_ids: list[UUID | str], session: Session
     ) -> list[ModelType]:
         response = session.exec(
             select(self.model).where(self.model.id.in_(list_ids))  # type: ignore
@@ -41,12 +41,12 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return response.one()
 
     def get_multi(
-        self,
-        *,
-        skip: int = 0,
-        limit: int = 100,
-        query: SelectOfScalar[T] | None = None,
-        session: Session,
+            self,
+            *,
+            skip: int = 0,
+            limit: int = 100,
+            query: SelectOfScalar[T] | None = None,
+            session: Session,
     ) -> list[ModelType]:
         statement = (
             select(self.model).offset(skip).limit(limit) if query is None else query
@@ -55,13 +55,13 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return response.all()  # type: ignore
 
     def get_multi_ordered(
-        self,
-        *,
-        skip: int = 0,
-        limit: int = 100,
-        order_by: str | None = None,
-        order: str = "asc",
-        session: Session,
+            self,
+            *,
+            skip: int = 0,
+            limit: int = 100,
+            order_by: str | None = None,
+            order: str = "asc",
+            session: Session,
     ) -> list[ModelType]:
         columns = self.model.__table__.columns  # type: ignore
         order_by_column = columns.get(order_by, columns["id"])  # type: ignore
@@ -83,11 +83,11 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return response.all()  # type: ignore
 
     def create(
-        self,
-        *,
-        obj_in: CreateSchemaType | ModelType,
-        update: dict[str, Any] | None = None,
-        session: Session,
+            self,
+            *,
+            obj_in: CreateSchemaType | ModelType,
+            update: dict[str, Any] | None = None,
+            session: Session,
     ) -> ModelType:
         db_obj = self.model.model_validate(obj_in, update=update)
 
@@ -104,11 +104,11 @@ class Controller(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def update(
-        self,
-        *,
-        obj_current: ModelType,
-        obj_new: UpdateSchemaType | dict[str, Any] | ModelType,
-        session: Session,
+            self,
+            *,
+            obj_current: ModelType,
+            obj_new: UpdateSchemaType | dict[str, Any] | ModelType,
+            session: Session,
     ) -> ModelType:
         update_data = (
             obj_new
