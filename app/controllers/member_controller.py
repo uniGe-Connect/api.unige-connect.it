@@ -7,6 +7,7 @@ from app.models.user_model import UserModel
 from app.resources.member_resource import MemberPublic
 from app.resources.user_resource import UsersMemberPublic
 from app.models.group_model import GroupTypes
+from app.models.member_model import MemberTypes
 from sqlmodel import select
 
 
@@ -24,7 +25,7 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already member of group.")
         
         try:
-            member = MemberModel(user_id=user_id, group_id=group_id)
+            member = MemberModel(user_id=user_id, group_id=group_id, role=MemberTypes.owner)
             member = self.create(obj_in=member)
 
             group.member_count = group.member_count + 1
@@ -34,6 +35,7 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
         except:
             self.db_session.rollback()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong.")
+        
         
     def get_members(self, user_id: uuid.UUID, group_id: uuid.UUID) -> UsersMemberPublic:
         group = group_controller.get(id=group_id)
