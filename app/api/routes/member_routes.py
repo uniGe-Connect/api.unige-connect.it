@@ -14,3 +14,10 @@ def index(_id: uuid.UUID, current_user: CurrentUser) -> MemberPublic:
         user_id=current_user.id,
         group_id=_id
     )
+
+@router.put("/groups/{_id}/members", response_model=MemberPublic)
+def index(_id: uuid.UUID, current_user: CurrentUser) -> MemberPublic:
+    return member_controller.member_leave(
+        user_id=current_user.id,
+        group_id=_id
+    )
