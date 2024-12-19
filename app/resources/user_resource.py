@@ -9,7 +9,17 @@ class UserPublic(SQLModel):
     last_name: str
     email: str
 
-
+    
 class UsersPublic(SQLModel):
     data: list[UserPublic]
+    count: int
+
+
+class UserMemberPublic(SQLModel):
+    name: str
+    last_name: str
+
+
+class UsersMemberPublic(SQLModel):
+    data: list[UserMemberPublic]
     count: int
