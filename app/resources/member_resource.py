@@ -12,3 +12,4 @@ class MemberPublic(SQLModel):
 
 class MembersPublic(SQLModel):
     data: list[MemberPublic]
+    count: int

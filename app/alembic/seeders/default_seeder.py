@@ -22,7 +22,7 @@ def default_seeder():
     with Session(engine) as session:
         first_user = UserModel(
             id=fake.uuid4(),
-            name=fake.name(),
+            name=fake.first_name(),
             last_name=fake.last_name(),
             email='student@unige.it',
             serial_number='s123456'
@@ -30,7 +30,7 @@ def default_seeder():
 
         second_user = UserModel(
             id=uuid.uuid4(),
-            name=fake.name(),
+            name=fake.first_name(),
             last_name=fake.last_name(),
             email=fake.email(),
             serial_number='s123457'
@@ -92,10 +92,10 @@ def default_seeder():
             session.commit()
 
             for j in range(10):
-                role = MemberTypes.owner if i == 0 else MemberTypes.member
+                role = MemberTypes.owner if j == 0 else MemberTypes.member
                 user = UserModel(
                     id=fake.uuid4(),
-                    name=fake.name(),
+                    name=fake.first_name(),
                     last_name=fake.last_name(),
                     email=fake.email(),
                     serial_number=f"s12345{i}{j}"
@@ -112,7 +112,7 @@ def default_seeder():
                 )
 
                 session.add(member)
-                group.member_count = i + 1
+                group.member_count = j + 1
                 session.commit
 
                         
