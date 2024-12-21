@@ -6,6 +6,7 @@ from app.api.deps import CurrentUser, SessionDep
 from app.controllers.member_controller import member_controller
 from app.resources.member_resource import MemberPublic
 from app.resources.user_resource import UsersMemberPublic
+from app.models.member_model import MemberTypes
 
 
 router = APIRouter()
@@ -14,6 +15,7 @@ router = APIRouter()
 def index(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> MemberPublic:
     return member_controller.create_member(
         user_id=current_user.id,
+        role = MemberTypes.member,
         group_id=_id,
         session=session
     )

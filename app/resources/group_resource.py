@@ -12,7 +12,6 @@ class GroupPublic(SQLModel):
     member_count: int
     created_at: datetime
     is_member: bool = False
-    owner_id: uuid.UUID
 
 
 class GroupsPublic(SQLModel):

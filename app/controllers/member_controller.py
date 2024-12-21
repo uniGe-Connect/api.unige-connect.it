@@ -97,12 +97,12 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
             update_member_data = {"deleted_at": datetime.now(), "updated_at": datetime.now()}
             self.update(obj_current=member, obj_new=update_member_data,  session=session)
             group_controller.update(obj_current=group, obj_new=update_group_data, session=session)
-            self.db_session.commit()
+            session.commit()
 
             return member
 
         except Exception as e:
-            self.db_session.rollback()
+            session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Something went wrong: {str(e)}"
