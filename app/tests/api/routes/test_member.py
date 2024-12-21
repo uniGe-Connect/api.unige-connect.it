@@ -59,7 +59,7 @@ def headers(user: UserModel):
 
 def test_join_group_which_i_am_not_member(client: TestClient, headers, user, group, session: Session) -> None:
     assert group.member_count == 0
-
+    
     response = client.post(f"/groups/{group.id}/members", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["group_id"] == str(group.id)
@@ -70,10 +70,9 @@ def test_join_group_which_i_am_not_member(client: TestClient, headers, user, gro
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["member_count"] == 1
 
-
 def test_join_group_which_i_am_member_already(client: TestClient, headers, user, group, session: Session) -> None:
     assert group.member_count == 0
-
+    
     response = client.post(f"/groups/{group.id}/members", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["group_id"] == str(group.id)
@@ -88,7 +87,7 @@ def test_join_group_which_i_am_member_already(client: TestClient, headers, user,
     response = client.post(f"/groups/{group.id}/members", headers=headers)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    # check if the group member count is still 2 (not increased)
+    # check if the group member count is still 1 (not increased)
     response = client.get(f"/groups/{group.id}", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["member_count"] == 1
@@ -119,3 +118,19 @@ def test_join_closed_group(client: TestClient, headers, user, group, session: Se
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert response.json()["detail"] == "Unable to join."
+
+
+def test_get_members(client: TestClient, headers, group) -> None:
+    
+    response = client.post(f"/groups/{group.id}/members", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+
+    updated_group = group_controller.get(id=group.id)
+    assert updated_group.member_count == 1
+    
+    response = client.get(f"/groups/{updated_group.id}/members", headers=headers)
+    assert response.status_code == 200
+    assert len(response.json()["data"]) > 0  
+    first_item = response.json()["data"][0]  
+    expected_keys = {"name", "last_name"}
+    assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
