@@ -52,8 +52,8 @@ def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
 CurrentUser = Annotated[UserModel, Depends(auth_user)]
 
 
-def group_owner(_id: uuid.UUID, current_user: UserModel = Depends(auth_user)) -> GroupModel:
-    group = group_controller.get(id=_id)
+def group_owner(_id: uuid.UUID, session: SessionDep, current_user: UserModel = Depends(auth_user)) -> GroupModel:
+    group = group_controller.get(id=_id, session=session)
     if group.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions.")
     return group

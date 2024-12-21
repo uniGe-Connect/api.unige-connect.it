@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
 from fastapi import status
+
+from sqlmodel import Session
+
 from app.controllers.group_controller import group_controller
 from app.controllers.user_controller import user_controller
-from app.controllers.member_controller import member_controller
 from app.core.security import create_access_token
 import pytest
 from datetime import timedelta
-import uuid
 from datetime import datetime
 
 from app.models.group_model import GroupRequest, GroupTypes
@@ -47,7 +48,7 @@ def group_id(client, headers, test_user_id):
 
 
 @pytest.fixture
-def other_user():
+def other_user(session: Session):
     user = UserModel(
         id=fake.uuid4(),
         name=fake.name(),
@@ -55,11 +56,11 @@ def other_user():
         email=fake.email(),
         serial_number=f"s{fake.random_number(digits=6)}",
     )
-    user_controller.create(obj_in=user)
+    user_controller.create(obj_in=user, session=session)
     return user
 
 @pytest.fixture
-def other_user_group(other_user: UserModel):
+def other_user_group(other_user: UserModel, session: Session):
     group = GroupRequest(
         name=fake.name(),
         topic=fake.word(),
@@ -67,7 +68,7 @@ def other_user_group(other_user: UserModel):
         type=GroupTypes.public_open,
         owner_id=other_user.id
     )
-    group = group_controller.create(obj_in=group)
+    group = group_controller.create(obj_in=group, session=session)
     return group
 
 
@@ -123,7 +124,7 @@ def test_get_group_by_id(client: TestClient, group_id: str, headers) -> None:
     assert expected_keys.issubset(group.keys()), f"Missing fields: {expected_keys - set(group.keys())}"
     assert group["description"] == "TestDescription"
     
-def test_delete_group(client: TestClient, group_id: str, headers, test_user_id) -> None:
+def test_delete_group(client: TestClient, group_id: str, headers, test_user_id, session:Session) -> None:
     # Delete group which is not owned by the user
     response = client.get(f"/groups", headers=headers)
     assert response.status_code == 200
@@ -141,7 +142,7 @@ def test_delete_group(client: TestClient, group_id: str, headers, test_user_id) 
     response = client.delete(f"/groups/{group_id}", headers=headers)
     assert response.status_code == 200
 
-def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_group) -> None:
+def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_group, session: Session) -> None:
     response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
     owned_groups = response.json()["owned_groups"]
     joined_groups = response.json()["joined_groups"]
@@ -160,7 +161,7 @@ def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_gr
     assert len(joined_groups) == 1
 
     #Removing the group to clean the user joined group after the test
-    group_controller.remove(id=other_user_group.id)
+    group_controller.remove(id=other_user_group.id, session=session)
    
 
     
