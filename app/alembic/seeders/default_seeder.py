@@ -3,22 +3,26 @@ import random
 
 from faker import Faker
 from app.alembic.seeders.faker_group_provider import group_name_provider
+from app.alembic.seeders.faker_course_provider import course_name_provider, courses
 from sqlmodel import Session
 from app.core.db import (engine)
 from app.models.group_model import GroupModel, GroupTypes
 from app.models.user_model import UserModel
 from app.models.member_model import MemberModel, MemberTypes
+from app.models.course_model import CourseModel
+from app.models.course_teacher_model import CourseTeacherModel
 
 def default_seeder():
     fake = Faker()
     fake.add_provider(group_name_provider)
+    fake.add_provider(course_name_provider)
 
     print("Starting seeding the database ....")
 
     with Session(engine) as session:
         first_user = UserModel(
             id=fake.uuid4(),
-            name=fake.name(),
+            name=fake.first_name(),
             last_name=fake.last_name(),
             email='student@unige.it',
             serial_number='s123456'
@@ -26,7 +30,7 @@ def default_seeder():
 
         second_user = UserModel(
             id=uuid.uuid4(),
-            name=fake.name(),
+            name=fake.first_name(),
             last_name=fake.last_name(),
             email=fake.email(),
             serial_number='s123457'
@@ -42,25 +46,56 @@ def default_seeder():
 
         session.add_all([first_user, second_user,test_user])
         session.commit()
+        
+
+        for i in range (10):
+            course = CourseModel(
+                id=uuid.uuid4(),
+                name=fake.course_name(),
+            )
+            session.add(course)
+            session.commit()
+            
+            teacher = UserModel(
+            id=uuid.uuid4(),
+            name=fake.name(),
+            last_name=fake.last_name(),
+            email=fake.email(),
+            serial_number=f"s{i}123400",
+            type = 'professor'
+            )
+
+            session.add(teacher)
+            session.commit()
+
+            course_teacher = CourseTeacherModel(
+                course_id = course.id,
+                user_id = teacher.id
+            )
+
+            session.add(course_teacher)
+            session.commit()
+            
 
         for i in range(10):
             group = GroupModel(
                 id=uuid.uuid4(),
                 name=fake.group_name(),
-                topic=fake.word(),
+                topic=fake.course_name(),
                 description=fake.sentence(50),
                 type=GroupTypes.public_open,
                 owner_id=first_user.id,
+                created_at=fake.date_time_this_year(),
             )
 
             session.add(group)
             session.commit()
 
             for j in range(10):
-                role = MemberTypes.owner if i == 0 else MemberTypes.member
+                role = MemberTypes.owner if j == 0 else MemberTypes.member
                 user = UserModel(
                     id=fake.uuid4(),
-                    name=fake.name(),
+                    name=fake.first_name(),
                     last_name=fake.last_name(),
                     email=fake.email(),
                     serial_number=f"s12345{i}{j}"
@@ -77,7 +112,7 @@ def default_seeder():
                 )
 
                 session.add(member)
-                group.member_count = i + 1
+                group.member_count = j + 1
                 session.commit
 
                         
