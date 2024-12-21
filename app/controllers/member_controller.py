@@ -11,7 +11,7 @@ from app.resources.user_resource import UsersMemberPublic
 from app.models.group_model import GroupTypes
 from app.models.member_model import MemberTypes
 from sqlmodel import select
-from app.api.deps import SessionDep
+from datetime import datetime
 
 
 class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
@@ -66,5 +66,46 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
         except Exception as e:
             print(f"Error: {e}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong.")
+        
+    def member_leave(self, user_id: uuid.UUID, group_id: uuid.UUID, session: SessionDep) -> MemberPublic:
+        group = group_controller.get(id=group_id, session=session)
+        if not group:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found.")
+
+        query = select(MemberModel).where(
+            MemberModel.user_id == user_id,
+            MemberModel.group_id == group_id
+        )
+        result = self.get_multi(query=query, session=session)
+        member = result[0] if result else None
+        
+        if member is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are not a member of the group.")
+        
+        if group.owner_id == user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="The owner cannot leave the group."
+            )         
+
+        if member.deleted_at is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="You are not a member of the group anymore."
+            )        
+        
+        try:
+            update_group_data = {"member_count": group.member_count - 1, "updated_at": datetime.now()}
+            update_member_data = {"deleted_at": datetime.now(), "updated_at": datetime.now()}
+            self.update(obj_current=member, obj_new=update_member_data,  session=session)
+            group_controller.update(obj_current=group, obj_new=update_group_data, session=session)
+            session.commit()
+
+            return member
+
+        except Exception as e:
+            session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Something went wrong: {str(e)}"
+            )
 
 member_controller = MemberController(MemberModel)
