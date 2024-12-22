@@ -51,15 +51,13 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not a member of group.")
         
         try:
-            # query = (
-            #     select(UserModel.name, UserModel.last_name, MemberModel.role)
-            #     .join(MemberModel, UserModel.id == MemberModel.user_id)
-            #     .where(MemberModel.group_id == group_id)
-            # )
+            query = (
+                select(UserModel.name, UserModel.last_name, MemberModel.role)
+                .join(MemberModel, UserModel.id == MemberModel.user_id)
+                .where(MemberModel.group_id == group_id and MemberModel.deleted_at == None)
+            )
             
-            # members_public = self.get_multi(query=query, session=session)
-            # filter out deleted members
-            members_public = [member for member in group.users if member.deleted_at == None]
+            members_public = self.get_multi(query=query, session=session)
             
             return UsersMemberPublic(data=members_public, count=group.member_count)
         
