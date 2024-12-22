@@ -3,7 +3,7 @@ import uuid
 from requests import session
 from sqlmodel import select
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import Optional, Any
 
 from app.api.deps import CurrentUser, auth_user, group_owner, SessionDep
@@ -51,7 +51,6 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
     member_controller.create_member(
         user_id=current_user.id,
         group_id=group.id,
-        role=MemberTypes.owner
     )
     return GroupPublic(**group.__dict__, is_member=True)
 
@@ -64,3 +63,11 @@ def update(_id: uuid.UUID, session: SessionDep) -> GroupPublic:
 @router.delete("/groups/{_id}", response_model=GroupPublic)
 def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:
     return group_controller.remove(id=group.id, session=session)
+
+@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
+def update(_id: uuid.UUID, session: SessionDep, request: GroupRequest, group: GroupModel = Depends(group_owner)) -> GroupPublic:
+    try:
+        updated_group = group_controller.update(obj_current=group, obj_new=request, session=session)
+        return GroupPublic(**updated_group.__dict__, is_member=True)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
