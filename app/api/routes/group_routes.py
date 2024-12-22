@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 
 from requests import session
 from sqlmodel import select
@@ -59,20 +60,23 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
     session.refresh(group)
     return GroupPublic(**group.__dict__, is_member=True)
 
-
-@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
-def update(_id: uuid.UUID, session: SessionDep) -> GroupPublic:
-    return group_controller.get(id=_id, session=session)
-
-
 @router.delete("/groups/{_id}", response_model=GroupPublic)
 def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:
     return group_controller.remove(id=group.id, session=session)
 
 @router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
-def update(_id: uuid.UUID, session: SessionDep, request: GroupRequest, group: GroupModel = Depends(group_owner)) -> GroupPublic:
-    try:
-        updated_group = group_controller.update(obj_current=group, obj_new=request, session=session)
-        return GroupPublic(**updated_group.__dict__, is_member=True)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] = None, group: GroupModel = Depends(group_owner)) -> GroupPublic:
+    if request:
+        try:
+            if group.created_at != group.updated_at and (datetime.now() - group.updated_at) < timedelta(minutes=10):
+                raise HTTPException(status_code=400, detail="You can only update a group every 10 minutes")
+            else:
+                group.updated_at = datetime.now()
+                updated_group = group_controller.update(obj_current=group, obj_new=request, session=session)
+                return GroupPublic(**updated_group.__dict__, is_member=True)
+        except HTTPException as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    else:
+        return group_controller.get(id=_id, session=session)
