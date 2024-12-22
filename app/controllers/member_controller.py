@@ -16,7 +16,7 @@ from app.api.deps import SessionDep
 
 class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
 
-    def create_member(self, user_id: uuid.UUID, group_id: uuid.UUID, role: MemberTypes, session: SessionDep) -> MemberPublic:
+    def create_member(self, user_id: uuid.UUID, group_id: uuid.UUID, session: SessionDep, role: MemberTypes = MemberTypes.member) -> MemberPublic:
         group = group_controller.get(id=group_id, session=session)
 
         if group.type != GroupTypes.public_open:
@@ -31,7 +31,7 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already member of group.")
 
         try:
-            member = MemberModel(user_id=user_id, group_id=group_id, role=role if role else MemberTypes.member)
+            member = MemberModel(user_id=user_id, group_id=group_id, role=role)
             self.create(obj_in=member, session=session)
 
             group.member_count = group.member_count + 1

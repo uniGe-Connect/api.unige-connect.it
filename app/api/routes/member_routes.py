@@ -19,7 +19,7 @@ def index(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> Mem
     )
     
 @router.get("/groups/{_id}/members", response_model=UsersMemberPublic)
-def index(_id: uuid.UUID, current_user: CurrentUser) -> UsersMemberPublic:
+def index(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> UsersMemberPublic:
     return member_controller.get_members(
         user_id=current_user.id,
         group_id=_id,

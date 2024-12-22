@@ -51,7 +51,12 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
     member_controller.create_member(
         user_id=current_user.id,
         group_id=group.id,
+        role=MemberTypes.owner,
+        session=session
+
     )
+
+    session.refresh(group)
     return GroupPublic(**group.__dict__, is_member=True)
 
 
