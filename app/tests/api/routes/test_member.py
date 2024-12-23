@@ -120,17 +120,17 @@ def test_join_closed_group(client: TestClient, headers, user, group, session: Se
     assert response.json()["detail"] == "Unable to join."
 
 
-def test_get_members(client: TestClient, headers, group) -> None:
+def test_get_members(client: TestClient, headers, group, session: Session) -> None:
     
     response = client.post(f"/groups/{group.id}/members", headers=headers)
     assert response.status_code == status.HTTP_200_OK
 
-    updated_group = group_controller.get(id=group.id)
+    updated_group = group_controller.get(id=group.id, session=session)
     assert updated_group.member_count == 1
     
     response = client.get(f"/groups/{updated_group.id}/members", headers=headers)
     assert response.status_code == 200
     assert len(response.json()["data"]) > 0  
-    first_item = response.json()["data"][0]  
+    first_item = response.json()["data"][0]
     expected_keys = {"name", "last_name"}
     assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
