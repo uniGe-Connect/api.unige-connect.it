@@ -11,7 +11,7 @@ from app.resources.user_resource import UsersMemberPublic
 router = APIRouter()
 
 @router.post("/groups/{_id}/members", response_model=MemberPublic)
-def index(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> MemberPublic:
+def store(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> MemberPublic:
     return member_controller.create_member(
         user_id=current_user.id,
         group_id=_id,
