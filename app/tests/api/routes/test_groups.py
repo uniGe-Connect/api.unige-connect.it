@@ -3,6 +3,7 @@ from fastapi import status
 
 from sqlmodel import Session
 
+from app.controllers.course_controller import course_controller
 from app.controllers.group_controller import group_controller
 from app.controllers.user_controller import user_controller
 from app.core.security import create_access_token
@@ -34,10 +35,11 @@ def client():
 
 @pytest.fixture
 def group_id(client, headers, test_user_id):
+    course = course_controller.get_all()[0]
     group_request = {
         "name": "TestName2",
         "description": "TestDescription",
-        "topic": "TestTopic",
+        "course_id": course.id,
         "type": "public_open",  
         "member_count": 1,
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -61,9 +63,10 @@ def other_user(session: Session):
 
 @pytest.fixture
 def other_user_group(other_user: UserModel, session: Session):
+    course = course_controller.get_all()[0]
     group = GroupRequest(
         name=fake.name(),
-        topic=fake.word(),
+        course_id=course.id,
         description=fake.sentence(2),
         type=GroupTypes.public_open,
         owner_id=other_user.id
@@ -87,7 +90,7 @@ def test_get_first_group(client: TestClient,headers) ->None:
     group_id = first_item["id"]
     response = client.get(f"/groups/{group_id}", headers=headers) 
     assert response.status_code == 200
-    expected_keys = {"id", "name", "topic", "description", "type", "member_count", "created_at"}
+    expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
     assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
 
 def test_get_all_groups(client: TestClient, headers) -> None:
@@ -95,14 +98,15 @@ def test_get_all_groups(client: TestClient, headers) -> None:
     assert response.status_code == 200
     assert len(response.json()["data"]) > 0  
     first_item = response.json()["data"][0]  
-    expected_keys = {"id", "name", "topic", "description", "type", "member_count", "created_at"}
+    expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
     assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
     
 def test_post_group(client: TestClient, headers, test_user_id) -> str:
+    course = course_controller.get_all()[0]
     group_request = {
         "name": "TestName2",
         "description": "TestDescription",
-        "topic": "TestTopic",
+        "course_id": course.id,
         "type": "public_open", 
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
@@ -120,7 +124,7 @@ def test_get_group_by_id(client: TestClient, group_id: str, headers) -> None:
     response = client.get(f"/groups/{group_id}", headers=headers)
     assert response.status_code == 200
     group = response.json()
-    expected_keys = {"id", "name", "topic", "description", "type", "member_count", "created_at"}
+    expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
     assert expected_keys.issubset(group.keys()), f"Missing fields: {expected_keys - set(group.keys())}"
     assert group["description"] == "TestDescription"
     
