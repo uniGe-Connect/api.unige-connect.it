@@ -2,15 +2,16 @@ import uuid
 
 from requests import session
 from sqlmodel import select
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
 from typing import Optional, Any
 
 from app.api.deps import CurrentUser, auth_user, group_owner, SessionDep
-from app.controllers.group_controller import group_controller
 from app.models.group_model import GroupRequest, GroupModel
 from app.models.member_model import MemberTypes
 from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
+from app.controllers.group_controller import group_controller
 from app.controllers.member_controller import member_controller
 
 router = APIRouter()
@@ -56,6 +57,7 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
     )
 
     session.refresh(group)
+    print()
     return GroupPublic(**group.__dict__, is_member=True)
 
 
@@ -65,5 +67,9 @@ def update(_id: uuid.UUID, session: SessionDep) -> GroupPublic:
 
 
 @router.delete("/groups/{_id}", response_model=GroupPublic)
-def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:
-    return group_controller.remove(id=group.id, session=session)
+def update(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupModel:
+    return group_controller.delete_group(
+        group=group,
+        group_id=_id,
+        session=session
+    )

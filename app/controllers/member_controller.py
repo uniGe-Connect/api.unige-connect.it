@@ -11,8 +11,6 @@ from app.resources.user_resource import UsersMemberPublic
 from app.models.group_model import GroupTypes
 from app.models.member_model import MemberTypes
 from sqlmodel import select
-from app.api.deps import SessionDep
-
 
 class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
 
