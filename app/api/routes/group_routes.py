@@ -9,7 +9,7 @@ from typing import Optional, Any
 from app.api.deps import CurrentUser, auth_user, group_owner, SessionDep
 from app.controllers.group_controller import group_controller
 from app.models.group_model import GroupRequest, GroupModel
-from app.models.member_model import MemberTypes
+from app.models.member_model import MemberTypes, MemberModel
 from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
 from app.controllers.member_controller import member_controller
 
@@ -25,7 +25,14 @@ def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] 
             if(any(group.id == owned_group.id for owned_group in current_user.groups)):
                 owned_groups += group_public
             else:
-                joined_groups += group_public
+                #it finds the record of MemberModel for the corrent user
+                member_record = session.query(MemberModel).filter(
+                    MemberModel.group_id == group.id,
+                    MemberModel.user_id == current_user.id,
+                    MemberModel.deleted_at == None  #only deleted_at null, because it means that the user has no leave the group
+                ).first()
+                if member_record:
+                    joined_groups += group_public
         return MyGroups(owned_groups=owned_groups, joined_groups=joined_groups)
 
     groups = group_controller.get_multi_ordered(order_by='created_at', order='desc', session=session)
