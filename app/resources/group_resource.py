@@ -12,6 +12,7 @@ class GroupPublic(SQLModel):
     type: str
     member_count: int
     created_at: datetime
+    updated_at: datetime
     is_member: bool = False
     deleted_at: datetime | None = Field()
 
