@@ -50,3 +50,4 @@ class GroupRequest(BaseModel):
     description: str = Field(max_length=300)
     type: GroupTypes
     owner_id: uuid.UUID = Field(default=None)
+    updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

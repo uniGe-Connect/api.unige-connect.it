@@ -1,12 +1,14 @@
 import uuid
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from sqlmodel import select
+from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import Optional, Any
 
 from app.api.deps import CurrentUser, auth_user, group_owner, SessionDep
 from app.controllers.group_controller import group_controller
 from app.models.group_model import GroupRequest, GroupModel
-from app.models.member_model import MemberTypes
+from app.models.member_model import MemberTypes, MemberModel
 from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
 from app.controllers.member_controller import member_controller
 
@@ -22,7 +24,14 @@ def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] 
             if(any(group.id == owned_group.id for owned_group in current_user.groups)):
                 owned_groups += group_public
             else:
-                joined_groups += group_public
+                #it finds the record of MemberModel for the corrent user
+                member_record = session.query(MemberModel).filter(
+                    MemberModel.group_id == group.id,
+                    MemberModel.user_id == current_user.id,
+                    MemberModel.deleted_at == None  #only deleted_at null, because it means that the user has no leave the group
+                ).first()
+                if member_record:
+                    joined_groups += group_public
         return MyGroups(owned_groups=owned_groups, joined_groups=joined_groups)
 
     groups = group_controller.get_multi_ordered(order_by='created_at', order='desc', session=session)
@@ -50,17 +59,29 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
         group_id=group.id,
         role=MemberTypes.owner,
         session=session
+
     )
 
     session.refresh(group)
     return GroupPublic(**group.__dict__, is_member=True, course_name=group.course_name)
 
-
-@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
-def update(_id: uuid.UUID, session: SessionDep) -> GroupPublic:
-    return group_controller.get(id=_id, session=session)
-
-
 @router.delete("/groups/{_id}", response_model=GroupPublic)
 def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:
     return group_controller.remove(id=group.id, session=session)
+
+@router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
+def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] = None, group: GroupModel = Depends(group_owner)) -> GroupPublic:
+    if request:
+        try:
+            if group.created_at != group.updated_at and (datetime.now() - group.updated_at) < timedelta(minutes=10):
+                raise HTTPException(status_code=400, detail="You can only update a group every 10 minutes")
+            else:
+                group.updated_at = datetime.now()
+                updated_group = group_controller.update(obj_current=group, obj_new=request, session=session)
+                return GroupPublic(**updated_group.__dict__, is_member=True)
+        except HTTPException as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    else:
+        return group_controller.get(id=_id, session=session)

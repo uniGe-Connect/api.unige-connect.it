@@ -46,8 +46,7 @@ def group_id(client, headers, test_user_id):
     }
     response = client.post("/groups", json=group_request, headers=headers)
     assert response.status_code == 200
-    return response.json()["id"] 
-
+    return response.json()["id"]
 
 @pytest.fixture
 def other_user(session: Session):
@@ -187,7 +186,39 @@ def test_is_member_field(client: TestClient, group_id: str, headers, other_user_
         group["is_member"] == False if group["id"] not in user_groups_id else True
         for group in all_groups
     )
+def test_update_group(client: TestClient, group_id: str, headers) -> None:
+    group_request = {
+        "name": "UpdatedName",
+        "description": "UpdatedDescription",
+        "topic": "UpdatedTopic",
+        "type": "public_open",
+    }
+    response = client.put(f"/groups/{group_id}", json=group_request, headers=headers)
+    assert response.status_code == 200
+    group = response.json()
+    assert group["name"] == "UpdatedName"
+    assert group["description"] == "UpdatedDescription"
+    assert group["topic"] == "UpdatedTopic"
 
+def test_update_group_too_soon(client: TestClient, group_id: str, headers) -> None:
+    group_request = {
+        "name": "UpdatedName",
+        "description": "UpdatedDescription",
+        "topic": "UpdatedTopic",
+        "type": "public_open",
+    }
+    response = client.put(f"/groups/{group_id}", json=group_request, headers=headers)
+    assert response.status_code == 200
 
+    response = client.put(f"/groups/{group_id}", json=group_request, headers=headers)
+    assert response.status_code == 400
 
-
+def test_update_group_not_owner(client: TestClient, headers, other_user_group) -> None:
+    group_request = {
+        "name": "UpdatedName",
+        "description": "UpdatedDescription",
+        "topic": "UpdatedTopic",
+        "type": "public_open",
+    }
+    response = client.put(f"/groups/{other_user_group.id}", json=group_request, headers=headers)
+    assert response.status_code == 403
