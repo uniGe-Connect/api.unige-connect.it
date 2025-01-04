@@ -9,11 +9,9 @@ from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 from sqlmodel import Session
 
-from app.controllers.group_controller import group_controller
 from app.core import security
 from app.core.config import settings
 from app.core.db import engine
-from app.models.group_model import GroupModel
 from app.models.token_model import TokenPayload
 from app.models.user_model import UserModel
 
@@ -50,10 +48,3 @@ def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
 
 
 CurrentUser = Annotated[UserModel, Depends(auth_user)]
-
-
-def group_owner(_id: uuid.UUID, session: SessionDep, current_user: UserModel = Depends(auth_user)) -> GroupModel:
-    group = group_controller.get(id=_id, session=session)
-    if group.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions.")
-    return group

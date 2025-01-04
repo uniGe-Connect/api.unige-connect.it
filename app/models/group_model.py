@@ -28,6 +28,7 @@ class GroupBaseModel(SQLModel):
     member_count: int = Field(default=0)
     created_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    deleted_at: datetime | None = Field(default=None, nullable=True)
 
 
 class GroupModel(GroupBaseModel, table=True):
@@ -50,3 +51,4 @@ class GroupRequest(BaseModel):
     description: str = Field(max_length=300)
     type: GroupTypes
     owner_id: uuid.UUID = Field(default=None)
+    updated_at: datetime = Field(default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
