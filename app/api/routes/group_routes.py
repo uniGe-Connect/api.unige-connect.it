@@ -69,20 +69,12 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
         user_id=current_user.id,
         group_id=group.id,
         role=MemberTypes.owner,
-        session=session
-
+        session=session,
+        force=True
     )
 
     session.refresh(group)
     return GroupPublic(**group.__dict__, is_member=True, course_name=group.course_name)
-
-@router.delete("/groups/{_id}", response_model=GroupPublic)
-def update(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupModel:
-    return group_controller.delete_group(
-        group=group,
-        group_id=_id,
-        session=session
-    )
 
 @router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
 def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] = None, group: GroupModel = Depends(group_owner)) -> GroupPublic:
@@ -100,3 +92,8 @@ def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] 
             raise HTTPException(status_code=500, detail=str(e))
     else:
         return group_controller.get(id=_id, session=session)
+      
+@router.delete("/groups/{_id}", dependencies=[Depends(group_owner)])
+def destroy(_id: uuid.UUID, session: SessionDep) -> bool:
+    group_controller.remove(id=_id, session=session)
+    return True

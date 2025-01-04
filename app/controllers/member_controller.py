@@ -16,10 +16,10 @@ from datetime import datetime
 
 class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
 
-    def create_member(self, user_id: uuid.UUID, group_id: uuid.UUID, session: SessionDep, role: MemberTypes = MemberTypes.member) -> MemberPublic:
+    def create_member(self, user_id: uuid.UUID, group_id: uuid.UUID, session: SessionDep, role: MemberTypes = MemberTypes.member, force: bool = False) -> MemberPublic:
         group = group_controller.get(id=group_id, session=session)
 
-        if group.type != GroupTypes.public_open:
+        if group.type != GroupTypes.public_open and not force:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unable to join.")
 
         query = (select(MemberModel)
