@@ -10,11 +10,11 @@ from fastapi import HTTPException, status
 
 class GroupController(Controller[GroupModel, GroupRequest, GroupModel]):
 
-    def delete_group(self, group: GroupModel, group_id: uuid.UUID, session: SessionDep) -> GroupPublic:
+    def delete_group(self, group_id: uuid.UUID, session: SessionDep) -> GroupPublic:
         # Check if group exists
-        query = select(GroupModel).where(GroupModel.id == group_id)
-        if len(self.get_multi(query=query, session=session)) == 0:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Group not found.")
+        group = self.get(id=group_id, session=session)
+        if not group:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found.")
                 
         try:
             # Update deleted_at for the group

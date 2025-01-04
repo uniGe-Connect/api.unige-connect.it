@@ -95,5 +95,8 @@ def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] 
       
 @router.delete("/groups/{_id}", dependencies=[Depends(group_owner)])
 def destroy(_id: uuid.UUID, session: SessionDep) -> bool:
-    group_controller.remove(id=_id, session=session)
+    group_controller.delete_group(
+        group_id=_id,
+        session=session
+    )
     return True
