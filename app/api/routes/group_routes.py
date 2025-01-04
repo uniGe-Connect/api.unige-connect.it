@@ -11,7 +11,7 @@ from app.models.group_model import GroupRequest, GroupModel
 from app.models.member_model import MemberTypes, MemberModel
 from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
 from app.controllers.group_controller import group_controller
-from app.models.user_model import UserModel
+from app.models.user_model import UserModel, UserTypes
 from app.controllers.member_controller import member_controller
 
 router = APIRouter()
@@ -23,8 +23,8 @@ def group_owner(_id: uuid.UUID, session: SessionDep, current_user: UserModel = D
     return group
 
 @router.get("/groups", response_model=GroupsPublic | MyGroups, dependencies=[Depends(auth_user)], )
-def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] = Query(None)) -> GroupsPublic | MyGroups:
-    if member:
+def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] = Query(None), teacher: Optional[str] = Query(None)) -> GroupsPublic | MyGroups:
+    if member and current_user.type == UserTypes.student:
         owned_groups = []
         joined_groups = []
         for group in current_user.members:
@@ -41,6 +41,11 @@ def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] 
                 if member_record:
                     joined_groups += group_public
         return MyGroups(owned_groups=owned_groups, joined_groups=joined_groups)
+    
+    if teacher and current_user.type == UserTypes.professor:
+        teacher_groups = [group for course in current_user.courses for group in course.groups]
+        return GroupsPublic(data=teacher_groups, count=len(teacher_groups))    
+
 
     groups = group_controller.get_multi_ordered(order_by='created_at', order='desc', session=session)
     groups_public = [GroupPublic(**group.__dict__,is_member = any(user.id == current_user.id for user in group.users), course_name=group.course_name) for group in groups]

@@ -6,9 +6,11 @@ from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, Relationship
 from typing import List, TYPE_CHECKING
 from app.models.member_model import MemberModel
+from app.models.course_teacher_model import CourseTeacherModel
 
 if TYPE_CHECKING:
     from .group_model import GroupModel
+    from .course_model import CourseModel
 
 class UserTypes(str, Enum):
     professor = "professor"
@@ -30,3 +32,4 @@ class UserModel(UserBaseModel, table=True):
     # Get the user groups
     groups: List["GroupModel"] = Relationship(back_populates="user")
     members: List["GroupModel"] = Relationship(back_populates="users", link_model=MemberModel)
+    courses: List["CourseModel"] = Relationship(back_populates="teacher", link_model=CourseTeacherModel)
