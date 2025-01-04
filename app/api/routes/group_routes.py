@@ -49,7 +49,8 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
         user_id=current_user.id,
         group_id=group.id,
         role=MemberTypes.owner,
-        session=session
+        session=session,
+        force=True
     )
 
     session.refresh(group)
@@ -61,6 +62,7 @@ def update(_id: uuid.UUID, session: SessionDep) -> GroupPublic:
     return group_controller.get(id=_id, session=session)
 
 
-@router.delete("/groups/{_id}", response_model=GroupPublic)
-def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:
-    return group_controller.remove(id=group.id, session=session)
+@router.delete("/groups/{_id}", dependencies=[Depends(group_owner)])
+def destroy(_id: uuid.UUID, session: SessionDep) -> bool:
+    group_controller.remove(id=_id, session=session)
+    return True
