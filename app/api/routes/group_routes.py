@@ -2,17 +2,25 @@ import uuid
 from datetime import datetime, timedelta
 
 from sqlmodel import select
-from fastapi import APIRouter, Depends, Query, HTTPException
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Optional, Any
 
-from app.api.deps import CurrentUser, auth_user, group_owner, SessionDep
-from app.controllers.group_controller import group_controller
+from app.api.deps import CurrentUser, auth_user, SessionDep
 from app.models.group_model import GroupRequest, GroupModel
 from app.models.member_model import MemberTypes, MemberModel
 from app.resources.group_resource import GroupPublic, GroupsPublic, MyGroups
+from app.controllers.group_controller import group_controller
+from app.models.user_model import UserModel
 from app.controllers.member_controller import member_controller
 
 router = APIRouter()
+
+def group_owner(_id: uuid.UUID, session: SessionDep, current_user: UserModel = Depends(auth_user)) -> GroupModel:
+    group = group_controller.get(id=_id, session=session)
+    if group.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions.")
+    return group
 
 @router.get("/groups", response_model=GroupsPublic | MyGroups, dependencies=[Depends(auth_user)], )
 def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] = Query(None)) -> GroupsPublic | MyGroups:
@@ -46,6 +54,9 @@ def count(session: SessionDep) -> Any:
 
 @router.get("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)], )
 def show(_id: uuid.UUID, session: SessionDep) -> GroupPublic:
+    query = select(GroupModel).where(GroupModel.id == _id).where(GroupModel.deleted_at == None)
+    if len(group_controller.get_multi(query=query, session=session)) == 0:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Group not found.")
     group = group_controller.get(id=_id, session=session)
     return group
 
@@ -66,8 +77,12 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
     return GroupPublic(**group.__dict__, is_member=True, course_name=group.course_name)
 
 @router.delete("/groups/{_id}", response_model=GroupPublic)
-def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:
-    return group_controller.remove(id=group.id, session=session)
+def update(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupModel:
+    return group_controller.delete_group(
+        group=group,
+        group_id=_id,
+        session=session
+    )
 
 @router.put("/groups/{_id}", response_model=GroupPublic, dependencies=[Depends(auth_user)])
 def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] = None, group: GroupModel = Depends(group_owner)) -> GroupPublic:

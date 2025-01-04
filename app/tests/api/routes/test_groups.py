@@ -143,7 +143,7 @@ def test_delete_group(client: TestClient, group_id: str, headers, test_user_id, 
     # Delete owned group
     group_id = my_groups[0]["id"]
     response = client.delete(f"/groups/{group_id}", headers=headers)
-    assert response.status_code == 200
+    assert response.deleted_at is not None
 
 def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_group, session: Session) -> None:
     response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
