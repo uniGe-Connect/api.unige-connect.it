@@ -1,9 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
 
-from requests import session
 from sqlmodel import select
-
 from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import Optional, Any
 
@@ -22,7 +20,7 @@ def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] 
         owned_groups = []
         joined_groups = []
         for group in current_user.members:
-            group_public = [GroupPublic(**group.__dict__, is_member = True)]
+            group_public = [GroupPublic(**group.__dict__, is_member = True, course_name=group.course_name)]
             if(any(group.id == owned_group.id for owned_group in current_user.groups)):
                 owned_groups += group_public
             else:
@@ -37,7 +35,7 @@ def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] 
         return MyGroups(owned_groups=owned_groups, joined_groups=joined_groups)
 
     groups = group_controller.get_multi_ordered(order_by='created_at', order='desc', session=session)
-    groups_public = [GroupPublic(**group.__dict__,is_member = any(user.id == current_user.id for user in group.users)) for group in groups]
+    groups_public = [GroupPublic(**group.__dict__,is_member = any(user.id == current_user.id for user in group.users), course_name=group.course_name) for group in groups]
     return GroupsPublic(data=groups_public, count=len(groups_public))
 
 
@@ -65,7 +63,7 @@ def store(request: GroupRequest, session: SessionDep, current_user: CurrentUser)
     )
 
     session.refresh(group)
-    return GroupPublic(**group.__dict__, is_member=True)
+    return GroupPublic(**group.__dict__, is_member=True, course_name=group.course_name)
 
 @router.delete("/groups/{_id}", response_model=GroupPublic)
 def destroy(_id: uuid.UUID, session: SessionDep, group: GroupModel = Depends(group_owner)) -> GroupPublic:

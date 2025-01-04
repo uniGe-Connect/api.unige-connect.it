@@ -5,6 +5,8 @@ from faker import Faker
 from app.alembic.seeders.faker_group_provider import group_name_provider
 from app.alembic.seeders.faker_course_provider import course_name_provider, courses
 from sqlmodel import Session
+
+from app.controllers.course_controller import course_controller
 from app.core.db import (engine)
 from app.models.group_model import GroupModel, GroupTypes
 from app.models.user_model import UserModel
@@ -75,13 +77,14 @@ def default_seeder():
 
             session.add(course_teacher)
             session.commit()
-            
 
+        all_courses = course_controller.get_all(session=session)
         for i in range(10):
+            course = random.choice(all_courses)
             group = GroupModel(
                 id=uuid.uuid4(),
                 name=fake.group_name(),
-                topic=fake.course_name(),
+                course_id=course.id,
                 description=fake.sentence(50),
                 type=GroupTypes.public_open,
                 owner_id=first_user.id,
@@ -113,7 +116,7 @@ def default_seeder():
 
                 session.add(member)
                 group.member_count = j + 1
-                session.commit
+                session.commit()
 
                         
     print('Database seeding completed')
