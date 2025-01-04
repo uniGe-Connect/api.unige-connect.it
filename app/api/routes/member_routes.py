@@ -12,7 +12,7 @@ from app.models.member_model import MemberTypes
 router = APIRouter()
 
 @router.post("/groups/{_id}/members", response_model=MemberPublic)
-def index(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> MemberPublic:
+def store(_id: uuid.UUID, current_user: CurrentUser, session: SessionDep) -> MemberPublic:
     return member_controller.create_member(
         user_id=current_user.id,
         role = MemberTypes.member,

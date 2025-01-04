@@ -3,11 +3,10 @@ from datetime import datetime
 from sqlmodel import Field, SQLModel
 
 
-
 class GroupPublic(SQLModel):
     id: uuid.UUID
     name: str
-    topic: str
+    course_name: str
     description: str
     type: str
     member_count: int
