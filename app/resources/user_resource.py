@@ -2,12 +2,12 @@ import uuid
 from sqlmodel import SQLModel
 from app.models.member_model import MemberTypes
 
-
 class UserPublic(SQLModel):
     id: uuid.UUID
     name: str
     last_name: str
     email: str
+    type: str
 
     
 class UsersPublic(SQLModel):
