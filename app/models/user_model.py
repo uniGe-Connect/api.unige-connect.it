@@ -34,4 +34,4 @@ class UserModel(UserBaseModel, table=True):
     members: List["GroupModel"] = Relationship(back_populates="users", link_model=MemberModel)
 
     # Get the user courses
-    courses: List["CourseModel"] = Relationship(back_populates="users", link_model=CourseTeacherModel)
+    courses: List["CourseModel"] = Relationship(back_populates="teacher", link_model=CourseTeacherModel)

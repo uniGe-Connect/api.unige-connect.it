@@ -22,3 +22,4 @@ class CourseModel(CourseBaseModel, table=True):
 
     groups: List["GroupModel"] = Relationship(back_populates="course")
     users: List["UserModel"] = Relationship(back_populates="courses", link_model=CourseTeacherModel)
+    teacher: List["UserModel"] = Relationship(back_populates="courses", link_model=CourseTeacherModel)
