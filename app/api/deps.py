@@ -8,12 +8,11 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 from sqlmodel import Session
-
 from app.core import security
 from app.core.config import settings
 from app.core.db import engine
 from app.models.token_model import TokenPayload
-from app.models.user_model import UserModel
+from app.models.user_model import UserModel, UserTypes
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="docs/login"
@@ -45,6 +44,11 @@ def auth_user(session: SessionDep, token: TokenDep) -> UserModel:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to complete the authentication.")
 
     return user
+
+def is_prof(session: SessionDep, current_user: UserModel = Depends(auth_user)) -> UserModel:
+    if current_user.type is UserTypes.student:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions.")
+    return current_user
 
 
 CurrentUser = Annotated[UserModel, Depends(auth_user)]
