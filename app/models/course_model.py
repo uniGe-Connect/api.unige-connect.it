@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime
 from typing import List, TYPE_CHECKING
-
 from sqlmodel import Field, SQLModel, Relationship
 from app.models.course_teacher_model import CourseTeacherModel
 

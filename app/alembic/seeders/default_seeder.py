@@ -46,9 +46,16 @@ def default_seeder():
             serial_number='s000000'
         )
 
-        session.add_all([first_user, second_user,test_user])
+        professor = UserModel(
+            id=uuid.UUID("875d44c6-8a42-4292-b9f3-c0362ec4bd43"),
+            name = "Professor",
+            last_name = "at uniGe",
+            email= "professor@unige.it",
+            serial_number='101010',
+            type = 'professor')        
+
+        session.add_all([first_user, second_user,test_user, professor])
         session.commit()
-        
 
         for i in range (10):
             course = CourseModel(
@@ -57,28 +64,16 @@ def default_seeder():
             )
             session.add(course)
             session.commit()
-            
-            teacher = UserModel(
-            id=uuid.uuid4(),
-            name=fake.name(),
-            last_name=fake.last_name(),
-            email=fake.email(),
-            serial_number=f"s{i}123400",
-            type = 'professor'
-            )
 
-            session.add(teacher)
-            session.commit()
+        all_courses = course_controller.get_all(session=session)
 
+        for i in range(3):
             course_teacher = CourseTeacherModel(
-                course_id = course.id,
-                user_id = teacher.id
-            )
-
+                course_id = all_courses[i].id,
+                user_id = professor.id)            
             session.add(course_teacher)
             session.commit()
 
-        all_courses = course_controller.get_all(session=session)
         for i in range(10):
             course = random.choice(all_courses)
             group = GroupModel(
