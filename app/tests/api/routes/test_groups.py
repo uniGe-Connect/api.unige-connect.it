@@ -124,6 +124,15 @@ def test_get_all_groups(client: TestClient, headers) -> None:
         expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
         assert expected_keys.issubset(item.keys()), f"Missing fields: {expected_keys - set(item.keys())}"
 
+    #ask professor groups with a student
+    response = client.get("/groups?teacher=me", headers=headers)
+    data_aux = response.json()["data"]
+
+    #assert that the groups are the same cause teacher=me has no effect if you are student
+    for item in data:
+        assert any(x["id"] == item["id"] for x in data_aux )
+
+
 
     
 def test_post_group(client: TestClient, headers, test_user_id) -> str:
@@ -249,15 +258,18 @@ def test_update_group_not_owner(client: TestClient, headers, other_user_group) -
     response = client.put(f"/groups/{other_user_group.id}", json=group_request, headers=headers)
     assert response.status_code == 403
 
-def test_get_group_professor_courses(client: TestClient, prof_headers, prof_user) -> None:
+def test_get_group_professor_courses(client: TestClient, prof_headers, prof_user, session : Session) -> None:
     response = client.get(f"/groups?teacher=me", headers=prof_headers)
     assert response.status_code == 200
     data = response.json()["data"]
+
+    #We re-get the user model of the professor to have the updated object with correct coursesassociated
+    updated_prof_user = user_controller.get(id=prof_user.id, session=session)
+
     for item in data:
         expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
         assert expected_keys.issubset(item.keys()), f"Missing fields: {expected_keys - set(item.keys())}"
-        # This assert do not work because of session issues, infact prof_user.courses result to be empty while it should not
-        # assert item["course_name"] in prof_user.courses
+        assert any(item["course_name"] == course.name for course in updated_prof_user.courses)
     
 
 
