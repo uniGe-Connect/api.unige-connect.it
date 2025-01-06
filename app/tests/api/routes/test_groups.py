@@ -4,6 +4,7 @@ from fastapi import status
 from sqlmodel import Session
 
 from app.controllers.course_controller import course_controller
+from app.controllers.course_teacher_controller import course_teacher_controller
 from app.controllers.group_controller import group_controller
 from app.controllers.user_controller import user_controller
 from app.core.security import create_access_token
@@ -12,7 +13,8 @@ from datetime import timedelta
 from datetime import datetime
 
 from app.models.group_model import GroupRequest, GroupTypes
-from app.models.user_model import UserModel
+from app.models.user_model import UserModel, UserTypes
+from app.models.course_teacher_model import CourseTeacherModel
 from faker import Faker
 fake = Faker()
 
@@ -73,6 +75,27 @@ def other_user_group(other_user: UserModel, session: Session):
     group = group_controller.create(obj_in=group, session=session)
     return group
 
+@pytest.fixture
+def prof_user(session: Session):
+    user = UserModel(
+        id=fake.uuid4(),
+        name=fake.name(),
+        last_name=fake.last_name(),
+        email=fake.email(),
+        type=UserTypes.professor,
+        serial_number=f"s{fake.random_number(digits=6)}",
+    )
+    user_controller.create(obj_in=user, session=session)
+    course = course_controller.get_all(session=session)[0]
+    course_teacher_controller.create( obj_in= CourseTeacherModel(course_id=course.id, user_id=user.id), session=session)
+    return user
+
+@pytest.fixture
+def prof_headers(prof_user : UserModel):
+    test_user_id = prof_user.id
+    expires_delta = timedelta(hours=1)  
+    token = create_access_token(subject=test_user_id, expires_delta=expires_delta) 
+    return {"Authorization": f"Bearer {token}"}
 
 #Test cases
 
@@ -96,9 +119,21 @@ def test_get_all_groups(client: TestClient, headers) -> None:
     response = client.get("/groups", headers=headers)
     assert response.status_code == 200
     assert len(response.json()["data"]) > 0  
-    first_item = response.json()["data"][0]  
-    expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
-    assert expected_keys.issubset(first_item.keys()), f"Missing fields: {expected_keys - set(first_item.keys())}"
+    data = response.json()["data"]
+    for item in data:
+        expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
+        assert expected_keys.issubset(item.keys()), f"Missing fields: {expected_keys - set(item.keys())}"
+
+    #ask professor groups with a student
+    response = client.get("/groups?teacher=me", headers=headers)
+    data_aux = response.json()["data"]
+
+    #assert that the groups are the same cause teacher=me has no effect if you are student
+    for item in data:
+        assert any(x["id"] == item["id"] for x in data_aux )
+
+
+
     
 def test_post_group(client: TestClient, headers, test_user_id) -> str:
     course = course_controller.get_all()[0]
@@ -222,3 +257,19 @@ def test_update_group_not_owner(client: TestClient, headers, other_user_group) -
     }
     response = client.put(f"/groups/{other_user_group.id}", json=group_request, headers=headers)
     assert response.status_code == 403
+
+def test_get_group_professor_courses(client: TestClient, prof_headers, prof_user, session : Session) -> None:
+    response = client.get(f"/groups?teacher=me", headers=prof_headers)
+    assert response.status_code == 200
+    data = response.json()["data"]
+
+    #We re-get the user model of the professor to have the updated object with correct coursesassociated
+    updated_prof_user = user_controller.get(id=prof_user.id, session=session)
+
+    for item in data:
+        expected_keys = {"id", "name", "course_name", "description", "type", "member_count", "created_at"}
+        assert expected_keys.issubset(item.keys()), f"Missing fields: {expected_keys - set(item.keys())}"
+        assert any(item["course_name"] == course.name for course in updated_prof_user.courses)
+    
+
+
