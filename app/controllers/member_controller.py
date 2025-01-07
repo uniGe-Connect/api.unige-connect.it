@@ -22,13 +22,23 @@ class MemberController(Controller[MemberModel, MemberModel, MemberModel]):
         if group.type != GroupTypes.public_open and not force:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unable to join.")
 
-        query = (select(MemberModel)
-            .where(MemberModel.user_id == user_id)
-            .where(MemberModel.group_id == group_id)
-            .where(MemberModel.deleted_at == None))
+        member_public = session.query(MemberModel).filter(
+            MemberModel.user_id == user_id,
+            MemberModel.group_id == group_id).first()    
 
-        if len(self.get_multi(query=query, session=session)) > 0:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already member of group.")
+        if member_public:
+            if member_public.deleted_at == None:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already member of group.")
+            try:
+                updated_member = member_public
+                member_public.deleted_at = None
+                self.update(obj_current=member_public, obj_new=updated_member, session=session)
+                session.commit()
+                return updated_member
+            
+            except:
+                session.rollback()
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong.")     
 
         try:
             member = MemberModel(user_id=user_id, group_id=group_id, role=role)

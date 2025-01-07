@@ -48,7 +48,18 @@ def index(current_user: CurrentUser, session: SessionDep, member: Optional[str] 
 
 
     groups = group_controller.get_multi_ordered(order_by='created_at', order='desc', session=session)
-    groups_public = [GroupPublic(**group.__dict__,is_member = any(user.id == current_user.id for user in group.users), course_name=group.course_name) for group in groups]
+    groups_public = [
+        GroupPublic(
+            **group.__dict__,
+            is_member=session.query(MemberModel).filter(
+                MemberModel.group_id == group.id,
+                MemberModel.user_id == current_user.id,
+                MemberModel.deleted_at == None
+            ).first() is not None,
+            course_name=group.course_name
+        )
+        for group in groups
+    ]
     return GroupsPublic(data=groups_public, count=len(groups_public))
 
 
