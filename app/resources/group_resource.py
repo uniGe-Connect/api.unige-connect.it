@@ -6,6 +6,7 @@ from sqlmodel import Field, SQLModel
 class GroupPublic(SQLModel):
     id: uuid.UUID
     name: str
+    course_id: uuid.UUID
     course_name: str
     description: str
     type: str
