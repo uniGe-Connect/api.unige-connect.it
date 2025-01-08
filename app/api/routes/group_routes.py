@@ -101,7 +101,7 @@ def update(_id: uuid.UUID, session: SessionDep, request: Optional[GroupRequest] 
             else:
                 group.updated_at = datetime.now()
                 updated_group = group_controller.update(obj_current=group, obj_new=request, session=session)
-                return GroupPublic(**updated_group.__dict__, is_member=True)
+                return group_controller.get(id=_id, session=session)
         except HTTPException as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
