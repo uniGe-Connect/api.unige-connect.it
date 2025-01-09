@@ -11,11 +11,13 @@ from app.core.security import create_access_token
 import pytest
 from datetime import timedelta
 from datetime import datetime
-
 from app.models.group_model import GroupRequest, GroupTypes
 from app.models.user_model import UserModel, UserTypes
 from app.models.course_teacher_model import CourseTeacherModel
 from faker import Faker
+import json
+import uuid
+
 fake = Faker()
 
 # Fixtures
@@ -36,15 +38,13 @@ def client():
     return TestClient(app)
 
 @pytest.fixture
-def group_id(client, headers, test_user_id):
-    course = course_controller.get_all()[0]
+def group_id(client, headers, test_user_id, session:Session):
+    course = course_controller.get_all(session=session)[0]
     group_request = {
         "name": "TestName2",
         "description": "TestDescription",
-        "course_id": course.id,
-        "type": "public_open",  
-        "member_count": 1,
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "course_id": str(course.id),
+        "type": "public_open",
     }
     response = client.post("/groups", json=group_request, headers=headers)
     assert response.status_code == 200
@@ -63,8 +63,14 @@ def other_user(session: Session):
     return user
 
 @pytest.fixture
+def other_user_headers(other_user: UserModel):
+    expires_delta = timedelta(hours=1)
+    token = create_access_token(subject=other_user.id, expires_delta=expires_delta)
+    return {"Authorization": f"Bearer {token}"}
+
+@pytest.fixture
 def other_user_group(other_user: UserModel, session: Session):
-    course = course_controller.get_all()[0]
+    course = course_controller.get_all(session=session)[0]
     group = GroupRequest(
         name=fake.name(),
         course_id=course.id,
@@ -132,17 +138,14 @@ def test_get_all_groups(client: TestClient, headers) -> None:
     for item in data:
         assert any(x["id"] == item["id"] for x in data_aux )
 
-
-
     
-def test_post_group(client: TestClient, headers, test_user_id) -> str:
-    course = course_controller.get_all()[0]
+def test_post_group(client: TestClient, headers, test_user_id, session: Session) -> str:
+    course = course_controller.get_all(session=session)[0]
     group_request = {
         "name": "TestName2",
         "description": "TestDescription",
-        "course_id": course.id,
-        "type": "public_open", 
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "course_id": str(course.id),
+        "type": "public_open",
     }
     response = client.post("/groups", json=group_request, headers=headers)
     group = response.json()
@@ -178,30 +181,27 @@ def test_delete_group(client: TestClient, group_id: str, headers, test_user_id, 
     # Delete owned group
     group_id = my_groups[0]["id"]
     response = client.delete(f"/groups/{group_id}", headers=headers)
-    assert response.deleted_at is not None
+    assert response.status_code == 200    
+    assert response.json() == True
 
-def test_my_groups_api(client: TestClient, group_id: str, headers, other_user_group, session: Session) -> None:
-    response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
+def test_my_groups_api(client: TestClient, group_id: str, other_user_headers, session: Session) -> None:
+    response = client.get("/groups?member=me", headers=other_user_headers)  # owned and joined groups
     owned_groups = response.json()["owned_groups"]
     joined_groups = response.json()["joined_groups"]
-    assert any(group_id == o_group["id"] for o_group in owned_groups)
+    assert any(group_id == o_group["id"] for o_group in owned_groups) == False
     assert any(group_id == j_group["id"] for j_group in joined_groups) == False
     assert len(joined_groups) == 0
 
-    response = client.post(f"/groups/{other_user_group.id}/members", headers=headers)
+    response = client.post(f"/groups/{group_id}/members", headers=other_user_headers)
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
+    response = client.get("/groups?member=me", headers=other_user_headers)  # owned and joined groups
     owned_groups = response.json()["owned_groups"]
     joined_groups = response.json()["joined_groups"]
-    assert any(str(other_user_group.id) == o_group["id"] for o_group in owned_groups) == False
-    assert any(str(other_user_group.id) == j_group["id"] for j_group in joined_groups)
+    assert any(str(group_id) == o_group["id"] for o_group in owned_groups) == False
+    assert any(str(group_id) == j_group["id"] for j_group in joined_groups)
     assert len(joined_groups) == 1
-
-    #Removing the group to clean the user joined group after the test
-    group_controller.remove(id=other_user_group.id, session=session)
    
-
     
 def test_is_member_field(client: TestClient, group_id: str, headers, other_user_group) -> None:
     response = client.get("/groups?member=me", headers=headers)  # owned and joined groups
@@ -212,8 +212,8 @@ def test_is_member_field(client: TestClient, group_id: str, headers, other_user_
 
     #All groups of which I am member have the is_member field set to True
     assert all(
-        group["is_member"] == True if group["id"] in user_groups_id else True
-        for group in all_groups
+        group["is_member"] == True
+        for group in joined_groups
     )
 
     #All groups of which I am not member have the is_member field set to False
@@ -221,11 +221,13 @@ def test_is_member_field(client: TestClient, group_id: str, headers, other_user_
         group["is_member"] == False if group["id"] not in user_groups_id else True
         for group in all_groups
     )
-def test_update_group(client: TestClient, group_id: str, headers) -> None:
+
+def test_update_group(client: TestClient, group_id: str, headers, session: Session) -> None:
+    course = course_controller.get_all(session=session)[0]
     group_request = {
         "name": "UpdatedName",
         "description": "UpdatedDescription",
-        "topic": "UpdatedTopic",
+        "course_id": str(course.id),
         "type": "public_open",
     }
     response = client.put(f"/groups/{group_id}", json=group_request, headers=headers)
@@ -233,13 +235,14 @@ def test_update_group(client: TestClient, group_id: str, headers) -> None:
     group = response.json()
     assert group["name"] == "UpdatedName"
     assert group["description"] == "UpdatedDescription"
-    assert group["topic"] == "UpdatedTopic"
+    assert group["course_id"] == str(course.id)
 
-def test_update_group_too_soon(client: TestClient, group_id: str, headers) -> None:
+def test_update_group_too_soon(client: TestClient, group_id: str, headers, session: Session) -> None:
+    course = course_controller.get_all(session=session)[0]    
     group_request = {
         "name": "UpdatedName",
         "description": "UpdatedDescription",
-        "topic": "UpdatedTopic",
+        "course_id": str(course.id),
         "type": "public_open",
     }
     response = client.put(f"/groups/{group_id}", json=group_request, headers=headers)
